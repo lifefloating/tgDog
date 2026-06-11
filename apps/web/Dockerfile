@@ -12,6 +12,9 @@ RUN pnpm install --frozen-lockfile || pnpm install
 COPY packages ./packages
 COPY apps/web ./apps/web
 
+# 保证 public 目录存在（即使源仓库未提供），供运行阶段 COPY 使用
+RUN mkdir -p apps/web/public
+
 # 构建时不连库（generate 与 next build 均不需要真实连接），用占位 DATABASE_URL
 ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 # 生成 Prisma client 后构建
