@@ -12,10 +12,10 @@ RUN pnpm install --frozen-lockfile || pnpm install
 COPY packages ./packages
 COPY apps/web ./apps/web
 
+# 构建时不连库（generate 与 next build 均不需要真实连接），用占位 DATABASE_URL
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 # 生成 Prisma client 后构建
 RUN cd packages/db && pnpm exec prisma generate
-# 构建时不连库（页面均 force-dynamic），用占位 DATABASE_URL
-ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 RUN pnpm --filter @tgdog/web build
 
 # ===== 运行阶段 =====

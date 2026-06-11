@@ -14,8 +14,9 @@ RUN pnpm install --frozen-lockfile || pnpm install
 COPY packages ./packages
 COPY apps/collector ./apps/collector
 
-# 生成 Prisma client
-RUN cd packages/db && pnpm exec prisma generate
+# 生成 Prisma client（generate 不连库，占位 DATABASE_URL 仅为通过 prisma.config.ts 的 env 校验；
+# 运行时由 compose 注入真实值覆盖）
+RUN cd packages/db && DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" pnpm exec prisma generate
 
 EXPOSE 8787
 CMD ["pnpm", "--filter", "@tgdog/collector", "start"]
