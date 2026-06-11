@@ -20,8 +20,18 @@ export type MessageModel = runtime.Types.Result.DefaultSelection<Prisma.$Message
 
 export type AggregateMessage = {
   _count: MessageCountAggregateOutputType | null
+  _avg: MessageAvgAggregateOutputType | null
+  _sum: MessageSumAggregateOutputType | null
   _min: MessageMinAggregateOutputType | null
   _max: MessageMaxAggregateOutputType | null
+}
+
+export type MessageAvgAggregateOutputType = {
+  dupCount: number | null
+}
+
+export type MessageSumAggregateOutputType = {
+  dupCount: number | null
 }
 
 export type MessageMinAggregateOutputType = {
@@ -33,7 +43,13 @@ export type MessageMinAggregateOutputType = {
   senderId: string | null
   senderName: string | null
   senderUsername: string | null
+  senderAvatarKey: string | null
   text: string | null
+  textHash: string | null
+  dupCount: number | null
+  lastSeenAt: Date | null
+  messageLink: string | null
+  polishedText: string | null
   timestamp: Date | null
   isForwarded: boolean | null
   fwdFrom: string | null
@@ -50,7 +66,13 @@ export type MessageMaxAggregateOutputType = {
   senderId: string | null
   senderName: string | null
   senderUsername: string | null
+  senderAvatarKey: string | null
   text: string | null
+  textHash: string | null
+  dupCount: number | null
+  lastSeenAt: Date | null
+  messageLink: string | null
+  polishedText: string | null
   timestamp: Date | null
   isForwarded: boolean | null
   fwdFrom: string | null
@@ -67,7 +89,13 @@ export type MessageCountAggregateOutputType = {
   senderId: number
   senderName: number
   senderUsername: number
+  senderAvatarKey: number
   text: number
+  textHash: number
+  dupCount: number
+  lastSeenAt: number
+  messageLink: number
+  polishedText: number
   timestamp: number
   isForwarded: number
   fwdFrom: number
@@ -79,6 +107,14 @@ export type MessageCountAggregateOutputType = {
 }
 
 
+export type MessageAvgAggregateInputType = {
+  dupCount?: true
+}
+
+export type MessageSumAggregateInputType = {
+  dupCount?: true
+}
+
 export type MessageMinAggregateInputType = {
   id?: true
   accountId?: true
@@ -88,7 +124,13 @@ export type MessageMinAggregateInputType = {
   senderId?: true
   senderName?: true
   senderUsername?: true
+  senderAvatarKey?: true
   text?: true
+  textHash?: true
+  dupCount?: true
+  lastSeenAt?: true
+  messageLink?: true
+  polishedText?: true
   timestamp?: true
   isForwarded?: true
   fwdFrom?: true
@@ -105,7 +147,13 @@ export type MessageMaxAggregateInputType = {
   senderId?: true
   senderName?: true
   senderUsername?: true
+  senderAvatarKey?: true
   text?: true
+  textHash?: true
+  dupCount?: true
+  lastSeenAt?: true
+  messageLink?: true
+  polishedText?: true
   timestamp?: true
   isForwarded?: true
   fwdFrom?: true
@@ -122,7 +170,13 @@ export type MessageCountAggregateInputType = {
   senderId?: true
   senderName?: true
   senderUsername?: true
+  senderAvatarKey?: true
   text?: true
+  textHash?: true
+  dupCount?: true
+  lastSeenAt?: true
+  messageLink?: true
+  polishedText?: true
   timestamp?: true
   isForwarded?: true
   fwdFrom?: true
@@ -171,6 +225,18 @@ export type MessageAggregateArgs<ExtArgs extends runtime.Types.Extensions.Intern
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: MessageAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: MessageSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: MessageMinAggregateInputType
@@ -201,6 +267,8 @@ export type MessageGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   _count?: MessageCountAggregateInputType | true
+  _avg?: MessageAvgAggregateInputType
+  _sum?: MessageSumAggregateInputType
   _min?: MessageMinAggregateInputType
   _max?: MessageMaxAggregateInputType
 }
@@ -214,7 +282,13 @@ export type MessageGroupByOutputType = {
   senderId: string | null
   senderName: string | null
   senderUsername: string | null
+  senderAvatarKey: string | null
   text: string
+  textHash: string | null
+  dupCount: number
+  lastSeenAt: Date | null
+  messageLink: string | null
+  polishedText: string | null
   timestamp: Date
   isForwarded: boolean
   fwdFrom: string | null
@@ -223,6 +297,8 @@ export type MessageGroupByOutputType = {
   raw: runtime.JsonValue | null
   createdAt: Date
   _count: MessageCountAggregateOutputType | null
+  _avg: MessageAvgAggregateOutputType | null
+  _sum: MessageSumAggregateOutputType | null
   _min: MessageMinAggregateOutputType | null
   _max: MessageMaxAggregateOutputType | null
 }
@@ -254,7 +330,13 @@ export type MessageWhereInput = {
   senderId?: Prisma.StringNullableFilter<"Message"> | string | null
   senderName?: Prisma.StringNullableFilter<"Message"> | string | null
   senderUsername?: Prisma.StringNullableFilter<"Message"> | string | null
+  senderAvatarKey?: Prisma.StringNullableFilter<"Message"> | string | null
   text?: Prisma.StringFilter<"Message"> | string
+  textHash?: Prisma.StringNullableFilter<"Message"> | string | null
+  dupCount?: Prisma.IntFilter<"Message"> | number
+  lastSeenAt?: Prisma.DateTimeNullableFilter<"Message"> | Date | string | null
+  messageLink?: Prisma.StringNullableFilter<"Message"> | string | null
+  polishedText?: Prisma.StringNullableFilter<"Message"> | string | null
   timestamp?: Prisma.DateTimeFilter<"Message"> | Date | string
   isForwarded?: Prisma.BoolFilter<"Message"> | boolean
   fwdFrom?: Prisma.StringNullableFilter<"Message"> | string | null
@@ -265,6 +347,7 @@ export type MessageWhereInput = {
   account?: Prisma.XOR<Prisma.AccountScalarRelationFilter, Prisma.AccountWhereInput>
   source?: Prisma.XOR<Prisma.SourceScalarRelationFilter, Prisma.SourceWhereInput>
   media?: Prisma.MediaListRelationFilter
+  ruleHits?: Prisma.MessageRuleHitListRelationFilter
 }
 
 export type MessageOrderByWithRelationInput = {
@@ -276,7 +359,13 @@ export type MessageOrderByWithRelationInput = {
   senderId?: Prisma.SortOrderInput | Prisma.SortOrder
   senderName?: Prisma.SortOrderInput | Prisma.SortOrder
   senderUsername?: Prisma.SortOrderInput | Prisma.SortOrder
+  senderAvatarKey?: Prisma.SortOrderInput | Prisma.SortOrder
   text?: Prisma.SortOrder
+  textHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  dupCount?: Prisma.SortOrder
+  lastSeenAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  messageLink?: Prisma.SortOrderInput | Prisma.SortOrder
+  polishedText?: Prisma.SortOrderInput | Prisma.SortOrder
   timestamp?: Prisma.SortOrder
   isForwarded?: Prisma.SortOrder
   fwdFrom?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -287,6 +376,7 @@ export type MessageOrderByWithRelationInput = {
   account?: Prisma.AccountOrderByWithRelationInput
   source?: Prisma.SourceOrderByWithRelationInput
   media?: Prisma.MediaOrderByRelationAggregateInput
+  ruleHits?: Prisma.MessageRuleHitOrderByRelationAggregateInput
 }
 
 export type MessageWhereUniqueInput = Prisma.AtLeast<{
@@ -302,7 +392,13 @@ export type MessageWhereUniqueInput = Prisma.AtLeast<{
   senderId?: Prisma.StringNullableFilter<"Message"> | string | null
   senderName?: Prisma.StringNullableFilter<"Message"> | string | null
   senderUsername?: Prisma.StringNullableFilter<"Message"> | string | null
+  senderAvatarKey?: Prisma.StringNullableFilter<"Message"> | string | null
   text?: Prisma.StringFilter<"Message"> | string
+  textHash?: Prisma.StringNullableFilter<"Message"> | string | null
+  dupCount?: Prisma.IntFilter<"Message"> | number
+  lastSeenAt?: Prisma.DateTimeNullableFilter<"Message"> | Date | string | null
+  messageLink?: Prisma.StringNullableFilter<"Message"> | string | null
+  polishedText?: Prisma.StringNullableFilter<"Message"> | string | null
   timestamp?: Prisma.DateTimeFilter<"Message"> | Date | string
   isForwarded?: Prisma.BoolFilter<"Message"> | boolean
   fwdFrom?: Prisma.StringNullableFilter<"Message"> | string | null
@@ -313,6 +409,7 @@ export type MessageWhereUniqueInput = Prisma.AtLeast<{
   account?: Prisma.XOR<Prisma.AccountScalarRelationFilter, Prisma.AccountWhereInput>
   source?: Prisma.XOR<Prisma.SourceScalarRelationFilter, Prisma.SourceWhereInput>
   media?: Prisma.MediaListRelationFilter
+  ruleHits?: Prisma.MessageRuleHitListRelationFilter
 }, "id" | "accountId_tgChatId_tgMessageId">
 
 export type MessageOrderByWithAggregationInput = {
@@ -324,7 +421,13 @@ export type MessageOrderByWithAggregationInput = {
   senderId?: Prisma.SortOrderInput | Prisma.SortOrder
   senderName?: Prisma.SortOrderInput | Prisma.SortOrder
   senderUsername?: Prisma.SortOrderInput | Prisma.SortOrder
+  senderAvatarKey?: Prisma.SortOrderInput | Prisma.SortOrder
   text?: Prisma.SortOrder
+  textHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  dupCount?: Prisma.SortOrder
+  lastSeenAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  messageLink?: Prisma.SortOrderInput | Prisma.SortOrder
+  polishedText?: Prisma.SortOrderInput | Prisma.SortOrder
   timestamp?: Prisma.SortOrder
   isForwarded?: Prisma.SortOrder
   fwdFrom?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -333,8 +436,10 @@ export type MessageOrderByWithAggregationInput = {
   raw?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.MessageCountOrderByAggregateInput
+  _avg?: Prisma.MessageAvgOrderByAggregateInput
   _max?: Prisma.MessageMaxOrderByAggregateInput
   _min?: Prisma.MessageMinOrderByAggregateInput
+  _sum?: Prisma.MessageSumOrderByAggregateInput
 }
 
 export type MessageScalarWhereWithAggregatesInput = {
@@ -349,7 +454,13 @@ export type MessageScalarWhereWithAggregatesInput = {
   senderId?: Prisma.StringNullableWithAggregatesFilter<"Message"> | string | null
   senderName?: Prisma.StringNullableWithAggregatesFilter<"Message"> | string | null
   senderUsername?: Prisma.StringNullableWithAggregatesFilter<"Message"> | string | null
+  senderAvatarKey?: Prisma.StringNullableWithAggregatesFilter<"Message"> | string | null
   text?: Prisma.StringWithAggregatesFilter<"Message"> | string
+  textHash?: Prisma.StringNullableWithAggregatesFilter<"Message"> | string | null
+  dupCount?: Prisma.IntWithAggregatesFilter<"Message"> | number
+  lastSeenAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Message"> | Date | string | null
+  messageLink?: Prisma.StringNullableWithAggregatesFilter<"Message"> | string | null
+  polishedText?: Prisma.StringNullableWithAggregatesFilter<"Message"> | string | null
   timestamp?: Prisma.DateTimeWithAggregatesFilter<"Message"> | Date | string
   isForwarded?: Prisma.BoolWithAggregatesFilter<"Message"> | boolean
   fwdFrom?: Prisma.StringNullableWithAggregatesFilter<"Message"> | string | null
@@ -366,7 +477,13 @@ export type MessageCreateInput = {
   senderId?: string | null
   senderName?: string | null
   senderUsername?: string | null
+  senderAvatarKey?: string | null
   text?: string
+  textHash?: string | null
+  dupCount?: number
+  lastSeenAt?: Date | string | null
+  messageLink?: string | null
+  polishedText?: string | null
   timestamp: Date | string
   isForwarded?: boolean
   fwdFrom?: string | null
@@ -377,6 +494,7 @@ export type MessageCreateInput = {
   account: Prisma.AccountCreateNestedOneWithoutMessagesInput
   source: Prisma.SourceCreateNestedOneWithoutMessagesInput
   media?: Prisma.MediaCreateNestedManyWithoutMessageInput
+  ruleHits?: Prisma.MessageRuleHitCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUncheckedCreateInput = {
@@ -388,7 +506,13 @@ export type MessageUncheckedCreateInput = {
   senderId?: string | null
   senderName?: string | null
   senderUsername?: string | null
+  senderAvatarKey?: string | null
   text?: string
+  textHash?: string | null
+  dupCount?: number
+  lastSeenAt?: Date | string | null
+  messageLink?: string | null
+  polishedText?: string | null
   timestamp: Date | string
   isForwarded?: boolean
   fwdFrom?: string | null
@@ -397,6 +521,7 @@ export type MessageUncheckedCreateInput = {
   raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   media?: Prisma.MediaUncheckedCreateNestedManyWithoutMessageInput
+  ruleHits?: Prisma.MessageRuleHitUncheckedCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUpdateInput = {
@@ -406,7 +531,13 @@ export type MessageUpdateInput = {
   senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderAvatarKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   text?: Prisma.StringFieldUpdateOperationsInput | string
+  textHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dupCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polishedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isForwarded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fwdFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -417,6 +548,7 @@ export type MessageUpdateInput = {
   account?: Prisma.AccountUpdateOneRequiredWithoutMessagesNestedInput
   source?: Prisma.SourceUpdateOneRequiredWithoutMessagesNestedInput
   media?: Prisma.MediaUpdateManyWithoutMessageNestedInput
+  ruleHits?: Prisma.MessageRuleHitUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateInput = {
@@ -428,7 +560,13 @@ export type MessageUncheckedUpdateInput = {
   senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderAvatarKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   text?: Prisma.StringFieldUpdateOperationsInput | string
+  textHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dupCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polishedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isForwarded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fwdFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -437,6 +575,7 @@ export type MessageUncheckedUpdateInput = {
   raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaUncheckedUpdateManyWithoutMessageNestedInput
+  ruleHits?: Prisma.MessageRuleHitUncheckedUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageCreateManyInput = {
@@ -448,7 +587,13 @@ export type MessageCreateManyInput = {
   senderId?: string | null
   senderName?: string | null
   senderUsername?: string | null
+  senderAvatarKey?: string | null
   text?: string
+  textHash?: string | null
+  dupCount?: number
+  lastSeenAt?: Date | string | null
+  messageLink?: string | null
+  polishedText?: string | null
   timestamp: Date | string
   isForwarded?: boolean
   fwdFrom?: string | null
@@ -465,7 +610,13 @@ export type MessageUpdateManyMutationInput = {
   senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderAvatarKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   text?: Prisma.StringFieldUpdateOperationsInput | string
+  textHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dupCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polishedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isForwarded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fwdFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -484,7 +635,13 @@ export type MessageUncheckedUpdateManyInput = {
   senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderAvatarKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   text?: Prisma.StringFieldUpdateOperationsInput | string
+  textHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dupCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polishedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isForwarded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fwdFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -519,7 +676,13 @@ export type MessageCountOrderByAggregateInput = {
   senderId?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
   senderUsername?: Prisma.SortOrder
+  senderAvatarKey?: Prisma.SortOrder
   text?: Prisma.SortOrder
+  textHash?: Prisma.SortOrder
+  dupCount?: Prisma.SortOrder
+  lastSeenAt?: Prisma.SortOrder
+  messageLink?: Prisma.SortOrder
+  polishedText?: Prisma.SortOrder
   timestamp?: Prisma.SortOrder
   isForwarded?: Prisma.SortOrder
   fwdFrom?: Prisma.SortOrder
@@ -527,6 +690,10 @@ export type MessageCountOrderByAggregateInput = {
   needsSummary?: Prisma.SortOrder
   raw?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+}
+
+export type MessageAvgOrderByAggregateInput = {
+  dupCount?: Prisma.SortOrder
 }
 
 export type MessageMaxOrderByAggregateInput = {
@@ -538,7 +705,13 @@ export type MessageMaxOrderByAggregateInput = {
   senderId?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
   senderUsername?: Prisma.SortOrder
+  senderAvatarKey?: Prisma.SortOrder
   text?: Prisma.SortOrder
+  textHash?: Prisma.SortOrder
+  dupCount?: Prisma.SortOrder
+  lastSeenAt?: Prisma.SortOrder
+  messageLink?: Prisma.SortOrder
+  polishedText?: Prisma.SortOrder
   timestamp?: Prisma.SortOrder
   isForwarded?: Prisma.SortOrder
   fwdFrom?: Prisma.SortOrder
@@ -555,12 +728,22 @@ export type MessageMinOrderByAggregateInput = {
   senderId?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
   senderUsername?: Prisma.SortOrder
+  senderAvatarKey?: Prisma.SortOrder
   text?: Prisma.SortOrder
+  textHash?: Prisma.SortOrder
+  dupCount?: Prisma.SortOrder
+  lastSeenAt?: Prisma.SortOrder
+  messageLink?: Prisma.SortOrder
+  polishedText?: Prisma.SortOrder
   timestamp?: Prisma.SortOrder
   isForwarded?: Prisma.SortOrder
   fwdFrom?: Prisma.SortOrder
   needsSummary?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+}
+
+export type MessageSumOrderByAggregateInput = {
+  dupCount?: Prisma.SortOrder
 }
 
 export type MessageScalarRelationFilter = {
@@ -652,6 +835,20 @@ export type MessageUncheckedUpdateManyWithoutSourceNestedInput = {
   deleteMany?: Prisma.MessageScalarWhereInput | Prisma.MessageScalarWhereInput[]
 }
 
+export type MessageCreateNestedOneWithoutRuleHitsInput = {
+  create?: Prisma.XOR<Prisma.MessageCreateWithoutRuleHitsInput, Prisma.MessageUncheckedCreateWithoutRuleHitsInput>
+  connectOrCreate?: Prisma.MessageCreateOrConnectWithoutRuleHitsInput
+  connect?: Prisma.MessageWhereUniqueInput
+}
+
+export type MessageUpdateOneRequiredWithoutRuleHitsNestedInput = {
+  create?: Prisma.XOR<Prisma.MessageCreateWithoutRuleHitsInput, Prisma.MessageUncheckedCreateWithoutRuleHitsInput>
+  connectOrCreate?: Prisma.MessageCreateOrConnectWithoutRuleHitsInput
+  upsert?: Prisma.MessageUpsertWithoutRuleHitsInput
+  connect?: Prisma.MessageWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.MessageUpdateToOneWithWhereWithoutRuleHitsInput, Prisma.MessageUpdateWithoutRuleHitsInput>, Prisma.MessageUncheckedUpdateWithoutRuleHitsInput>
+}
+
 export type MessageCreateNestedOneWithoutMediaInput = {
   create?: Prisma.XOR<Prisma.MessageCreateWithoutMediaInput, Prisma.MessageUncheckedCreateWithoutMediaInput>
   connectOrCreate?: Prisma.MessageCreateOrConnectWithoutMediaInput
@@ -673,7 +870,13 @@ export type MessageCreateWithoutAccountInput = {
   senderId?: string | null
   senderName?: string | null
   senderUsername?: string | null
+  senderAvatarKey?: string | null
   text?: string
+  textHash?: string | null
+  dupCount?: number
+  lastSeenAt?: Date | string | null
+  messageLink?: string | null
+  polishedText?: string | null
   timestamp: Date | string
   isForwarded?: boolean
   fwdFrom?: string | null
@@ -683,6 +886,7 @@ export type MessageCreateWithoutAccountInput = {
   createdAt?: Date | string
   source: Prisma.SourceCreateNestedOneWithoutMessagesInput
   media?: Prisma.MediaCreateNestedManyWithoutMessageInput
+  ruleHits?: Prisma.MessageRuleHitCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUncheckedCreateWithoutAccountInput = {
@@ -693,7 +897,13 @@ export type MessageUncheckedCreateWithoutAccountInput = {
   senderId?: string | null
   senderName?: string | null
   senderUsername?: string | null
+  senderAvatarKey?: string | null
   text?: string
+  textHash?: string | null
+  dupCount?: number
+  lastSeenAt?: Date | string | null
+  messageLink?: string | null
+  polishedText?: string | null
   timestamp: Date | string
   isForwarded?: boolean
   fwdFrom?: string | null
@@ -702,6 +912,7 @@ export type MessageUncheckedCreateWithoutAccountInput = {
   raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   media?: Prisma.MediaUncheckedCreateNestedManyWithoutMessageInput
+  ruleHits?: Prisma.MessageRuleHitUncheckedCreateNestedManyWithoutMessageInput
 }
 
 export type MessageCreateOrConnectWithoutAccountInput = {
@@ -742,7 +953,13 @@ export type MessageScalarWhereInput = {
   senderId?: Prisma.StringNullableFilter<"Message"> | string | null
   senderName?: Prisma.StringNullableFilter<"Message"> | string | null
   senderUsername?: Prisma.StringNullableFilter<"Message"> | string | null
+  senderAvatarKey?: Prisma.StringNullableFilter<"Message"> | string | null
   text?: Prisma.StringFilter<"Message"> | string
+  textHash?: Prisma.StringNullableFilter<"Message"> | string | null
+  dupCount?: Prisma.IntFilter<"Message"> | number
+  lastSeenAt?: Prisma.DateTimeNullableFilter<"Message"> | Date | string | null
+  messageLink?: Prisma.StringNullableFilter<"Message"> | string | null
+  polishedText?: Prisma.StringNullableFilter<"Message"> | string | null
   timestamp?: Prisma.DateTimeFilter<"Message"> | Date | string
   isForwarded?: Prisma.BoolFilter<"Message"> | boolean
   fwdFrom?: Prisma.StringNullableFilter<"Message"> | string | null
@@ -759,7 +976,13 @@ export type MessageCreateWithoutSourceInput = {
   senderId?: string | null
   senderName?: string | null
   senderUsername?: string | null
+  senderAvatarKey?: string | null
   text?: string
+  textHash?: string | null
+  dupCount?: number
+  lastSeenAt?: Date | string | null
+  messageLink?: string | null
+  polishedText?: string | null
   timestamp: Date | string
   isForwarded?: boolean
   fwdFrom?: string | null
@@ -769,6 +992,7 @@ export type MessageCreateWithoutSourceInput = {
   createdAt?: Date | string
   account: Prisma.AccountCreateNestedOneWithoutMessagesInput
   media?: Prisma.MediaCreateNestedManyWithoutMessageInput
+  ruleHits?: Prisma.MessageRuleHitCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUncheckedCreateWithoutSourceInput = {
@@ -779,7 +1003,13 @@ export type MessageUncheckedCreateWithoutSourceInput = {
   senderId?: string | null
   senderName?: string | null
   senderUsername?: string | null
+  senderAvatarKey?: string | null
   text?: string
+  textHash?: string | null
+  dupCount?: number
+  lastSeenAt?: Date | string | null
+  messageLink?: string | null
+  polishedText?: string | null
   timestamp: Date | string
   isForwarded?: boolean
   fwdFrom?: string | null
@@ -788,6 +1018,7 @@ export type MessageUncheckedCreateWithoutSourceInput = {
   raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
   media?: Prisma.MediaUncheckedCreateNestedManyWithoutMessageInput
+  ruleHits?: Prisma.MessageRuleHitUncheckedCreateNestedManyWithoutMessageInput
 }
 
 export type MessageCreateOrConnectWithoutSourceInput = {
@@ -816,14 +1047,20 @@ export type MessageUpdateManyWithWhereWithoutSourceInput = {
   data: Prisma.XOR<Prisma.MessageUpdateManyMutationInput, Prisma.MessageUncheckedUpdateManyWithoutSourceInput>
 }
 
-export type MessageCreateWithoutMediaInput = {
+export type MessageCreateWithoutRuleHitsInput = {
   id?: string
   tgMessageId: string
   tgChatId: string
   senderId?: string | null
   senderName?: string | null
   senderUsername?: string | null
+  senderAvatarKey?: string | null
   text?: string
+  textHash?: string | null
+  dupCount?: number
+  lastSeenAt?: Date | string | null
+  messageLink?: string | null
+  polishedText?: string | null
   timestamp: Date | string
   isForwarded?: boolean
   fwdFrom?: string | null
@@ -833,6 +1070,127 @@ export type MessageCreateWithoutMediaInput = {
   createdAt?: Date | string
   account: Prisma.AccountCreateNestedOneWithoutMessagesInput
   source: Prisma.SourceCreateNestedOneWithoutMessagesInput
+  media?: Prisma.MediaCreateNestedManyWithoutMessageInput
+}
+
+export type MessageUncheckedCreateWithoutRuleHitsInput = {
+  id?: string
+  accountId: string
+  sourceId: string
+  tgMessageId: string
+  tgChatId: string
+  senderId?: string | null
+  senderName?: string | null
+  senderUsername?: string | null
+  senderAvatarKey?: string | null
+  text?: string
+  textHash?: string | null
+  dupCount?: number
+  lastSeenAt?: Date | string | null
+  messageLink?: string | null
+  polishedText?: string | null
+  timestamp: Date | string
+  isForwarded?: boolean
+  fwdFrom?: string | null
+  matchedRuleIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  needsSummary?: boolean
+  raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  media?: Prisma.MediaUncheckedCreateNestedManyWithoutMessageInput
+}
+
+export type MessageCreateOrConnectWithoutRuleHitsInput = {
+  where: Prisma.MessageWhereUniqueInput
+  create: Prisma.XOR<Prisma.MessageCreateWithoutRuleHitsInput, Prisma.MessageUncheckedCreateWithoutRuleHitsInput>
+}
+
+export type MessageUpsertWithoutRuleHitsInput = {
+  update: Prisma.XOR<Prisma.MessageUpdateWithoutRuleHitsInput, Prisma.MessageUncheckedUpdateWithoutRuleHitsInput>
+  create: Prisma.XOR<Prisma.MessageCreateWithoutRuleHitsInput, Prisma.MessageUncheckedCreateWithoutRuleHitsInput>
+  where?: Prisma.MessageWhereInput
+}
+
+export type MessageUpdateToOneWithWhereWithoutRuleHitsInput = {
+  where?: Prisma.MessageWhereInput
+  data: Prisma.XOR<Prisma.MessageUpdateWithoutRuleHitsInput, Prisma.MessageUncheckedUpdateWithoutRuleHitsInput>
+}
+
+export type MessageUpdateWithoutRuleHitsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  tgMessageId?: Prisma.StringFieldUpdateOperationsInput | string
+  tgChatId?: Prisma.StringFieldUpdateOperationsInput | string
+  senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderAvatarKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  text?: Prisma.StringFieldUpdateOperationsInput | string
+  textHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dupCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polishedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isForwarded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  fwdFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  matchedRuleIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  needsSummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  account?: Prisma.AccountUpdateOneRequiredWithoutMessagesNestedInput
+  source?: Prisma.SourceUpdateOneRequiredWithoutMessagesNestedInput
+  media?: Prisma.MediaUpdateManyWithoutMessageNestedInput
+}
+
+export type MessageUncheckedUpdateWithoutRuleHitsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  accountId?: Prisma.StringFieldUpdateOperationsInput | string
+  sourceId?: Prisma.StringFieldUpdateOperationsInput | string
+  tgMessageId?: Prisma.StringFieldUpdateOperationsInput | string
+  tgChatId?: Prisma.StringFieldUpdateOperationsInput | string
+  senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderAvatarKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  text?: Prisma.StringFieldUpdateOperationsInput | string
+  textHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dupCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polishedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  isForwarded?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  fwdFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  matchedRuleIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  needsSummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  media?: Prisma.MediaUncheckedUpdateManyWithoutMessageNestedInput
+}
+
+export type MessageCreateWithoutMediaInput = {
+  id?: string
+  tgMessageId: string
+  tgChatId: string
+  senderId?: string | null
+  senderName?: string | null
+  senderUsername?: string | null
+  senderAvatarKey?: string | null
+  text?: string
+  textHash?: string | null
+  dupCount?: number
+  lastSeenAt?: Date | string | null
+  messageLink?: string | null
+  polishedText?: string | null
+  timestamp: Date | string
+  isForwarded?: boolean
+  fwdFrom?: string | null
+  matchedRuleIds?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  needsSummary?: boolean
+  raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  createdAt?: Date | string
+  account: Prisma.AccountCreateNestedOneWithoutMessagesInput
+  source: Prisma.SourceCreateNestedOneWithoutMessagesInput
+  ruleHits?: Prisma.MessageRuleHitCreateNestedManyWithoutMessageInput
 }
 
 export type MessageUncheckedCreateWithoutMediaInput = {
@@ -844,7 +1202,13 @@ export type MessageUncheckedCreateWithoutMediaInput = {
   senderId?: string | null
   senderName?: string | null
   senderUsername?: string | null
+  senderAvatarKey?: string | null
   text?: string
+  textHash?: string | null
+  dupCount?: number
+  lastSeenAt?: Date | string | null
+  messageLink?: string | null
+  polishedText?: string | null
   timestamp: Date | string
   isForwarded?: boolean
   fwdFrom?: string | null
@@ -852,6 +1216,7 @@ export type MessageUncheckedCreateWithoutMediaInput = {
   needsSummary?: boolean
   raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  ruleHits?: Prisma.MessageRuleHitUncheckedCreateNestedManyWithoutMessageInput
 }
 
 export type MessageCreateOrConnectWithoutMediaInput = {
@@ -877,7 +1242,13 @@ export type MessageUpdateWithoutMediaInput = {
   senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderAvatarKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   text?: Prisma.StringFieldUpdateOperationsInput | string
+  textHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dupCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polishedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isForwarded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fwdFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -887,6 +1258,7 @@ export type MessageUpdateWithoutMediaInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   account?: Prisma.AccountUpdateOneRequiredWithoutMessagesNestedInput
   source?: Prisma.SourceUpdateOneRequiredWithoutMessagesNestedInput
+  ruleHits?: Prisma.MessageRuleHitUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateWithoutMediaInput = {
@@ -898,7 +1270,13 @@ export type MessageUncheckedUpdateWithoutMediaInput = {
   senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderAvatarKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   text?: Prisma.StringFieldUpdateOperationsInput | string
+  textHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dupCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polishedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isForwarded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fwdFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -906,6 +1284,7 @@ export type MessageUncheckedUpdateWithoutMediaInput = {
   needsSummary?: Prisma.BoolFieldUpdateOperationsInput | boolean
   raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ruleHits?: Prisma.MessageRuleHitUncheckedUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageCreateManyAccountInput = {
@@ -916,7 +1295,13 @@ export type MessageCreateManyAccountInput = {
   senderId?: string | null
   senderName?: string | null
   senderUsername?: string | null
+  senderAvatarKey?: string | null
   text?: string
+  textHash?: string | null
+  dupCount?: number
+  lastSeenAt?: Date | string | null
+  messageLink?: string | null
+  polishedText?: string | null
   timestamp: Date | string
   isForwarded?: boolean
   fwdFrom?: string | null
@@ -933,7 +1318,13 @@ export type MessageUpdateWithoutAccountInput = {
   senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderAvatarKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   text?: Prisma.StringFieldUpdateOperationsInput | string
+  textHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dupCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polishedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isForwarded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fwdFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -943,6 +1334,7 @@ export type MessageUpdateWithoutAccountInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   source?: Prisma.SourceUpdateOneRequiredWithoutMessagesNestedInput
   media?: Prisma.MediaUpdateManyWithoutMessageNestedInput
+  ruleHits?: Prisma.MessageRuleHitUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateWithoutAccountInput = {
@@ -953,7 +1345,13 @@ export type MessageUncheckedUpdateWithoutAccountInput = {
   senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderAvatarKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   text?: Prisma.StringFieldUpdateOperationsInput | string
+  textHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dupCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polishedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isForwarded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fwdFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -962,6 +1360,7 @@ export type MessageUncheckedUpdateWithoutAccountInput = {
   raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaUncheckedUpdateManyWithoutMessageNestedInput
+  ruleHits?: Prisma.MessageRuleHitUncheckedUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateManyWithoutAccountInput = {
@@ -972,7 +1371,13 @@ export type MessageUncheckedUpdateManyWithoutAccountInput = {
   senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderAvatarKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   text?: Prisma.StringFieldUpdateOperationsInput | string
+  textHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dupCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polishedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isForwarded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fwdFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -990,7 +1395,13 @@ export type MessageCreateManySourceInput = {
   senderId?: string | null
   senderName?: string | null
   senderUsername?: string | null
+  senderAvatarKey?: string | null
   text?: string
+  textHash?: string | null
+  dupCount?: number
+  lastSeenAt?: Date | string | null
+  messageLink?: string | null
+  polishedText?: string | null
   timestamp: Date | string
   isForwarded?: boolean
   fwdFrom?: string | null
@@ -1007,7 +1418,13 @@ export type MessageUpdateWithoutSourceInput = {
   senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderAvatarKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   text?: Prisma.StringFieldUpdateOperationsInput | string
+  textHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dupCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polishedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isForwarded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fwdFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1017,6 +1434,7 @@ export type MessageUpdateWithoutSourceInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   account?: Prisma.AccountUpdateOneRequiredWithoutMessagesNestedInput
   media?: Prisma.MediaUpdateManyWithoutMessageNestedInput
+  ruleHits?: Prisma.MessageRuleHitUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateWithoutSourceInput = {
@@ -1027,7 +1445,13 @@ export type MessageUncheckedUpdateWithoutSourceInput = {
   senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderAvatarKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   text?: Prisma.StringFieldUpdateOperationsInput | string
+  textHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dupCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polishedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isForwarded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fwdFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1036,6 +1460,7 @@ export type MessageUncheckedUpdateWithoutSourceInput = {
   raw?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   media?: Prisma.MediaUncheckedUpdateManyWithoutMessageNestedInput
+  ruleHits?: Prisma.MessageRuleHitUncheckedUpdateManyWithoutMessageNestedInput
 }
 
 export type MessageUncheckedUpdateManyWithoutSourceInput = {
@@ -1046,7 +1471,13 @@ export type MessageUncheckedUpdateManyWithoutSourceInput = {
   senderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderUsername?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderAvatarKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   text?: Prisma.StringFieldUpdateOperationsInput | string
+  textHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dupCount?: Prisma.IntFieldUpdateOperationsInput | number
+  lastSeenAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  messageLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  polishedText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   timestamp?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   isForwarded?: Prisma.BoolFieldUpdateOperationsInput | boolean
   fwdFrom?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1063,10 +1494,12 @@ export type MessageUncheckedUpdateManyWithoutSourceInput = {
 
 export type MessageCountOutputType = {
   media: number
+  ruleHits: number
 }
 
 export type MessageCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   media?: boolean | MessageCountOutputTypeCountMediaArgs
+  ruleHits?: boolean | MessageCountOutputTypeCountRuleHitsArgs
 }
 
 /**
@@ -1086,6 +1519,13 @@ export type MessageCountOutputTypeCountMediaArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.MediaWhereInput
 }
 
+/**
+ * MessageCountOutputType without action
+ */
+export type MessageCountOutputTypeCountRuleHitsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MessageRuleHitWhereInput
+}
+
 
 export type MessageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1096,7 +1536,13 @@ export type MessageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   senderId?: boolean
   senderName?: boolean
   senderUsername?: boolean
+  senderAvatarKey?: boolean
   text?: boolean
+  textHash?: boolean
+  dupCount?: boolean
+  lastSeenAt?: boolean
+  messageLink?: boolean
+  polishedText?: boolean
   timestamp?: boolean
   isForwarded?: boolean
   fwdFrom?: boolean
@@ -1107,6 +1553,7 @@ export type MessageSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
   source?: boolean | Prisma.SourceDefaultArgs<ExtArgs>
   media?: boolean | Prisma.Message$mediaArgs<ExtArgs>
+  ruleHits?: boolean | Prisma.Message$ruleHitsArgs<ExtArgs>
   _count?: boolean | Prisma.MessageCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["message"]>
 
@@ -1119,7 +1566,13 @@ export type MessageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   senderId?: boolean
   senderName?: boolean
   senderUsername?: boolean
+  senderAvatarKey?: boolean
   text?: boolean
+  textHash?: boolean
+  dupCount?: boolean
+  lastSeenAt?: boolean
+  messageLink?: boolean
+  polishedText?: boolean
   timestamp?: boolean
   isForwarded?: boolean
   fwdFrom?: boolean
@@ -1140,7 +1593,13 @@ export type MessageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   senderId?: boolean
   senderName?: boolean
   senderUsername?: boolean
+  senderAvatarKey?: boolean
   text?: boolean
+  textHash?: boolean
+  dupCount?: boolean
+  lastSeenAt?: boolean
+  messageLink?: boolean
+  polishedText?: boolean
   timestamp?: boolean
   isForwarded?: boolean
   fwdFrom?: boolean
@@ -1161,7 +1620,13 @@ export type MessageSelectScalar = {
   senderId?: boolean
   senderName?: boolean
   senderUsername?: boolean
+  senderAvatarKey?: boolean
   text?: boolean
+  textHash?: boolean
+  dupCount?: boolean
+  lastSeenAt?: boolean
+  messageLink?: boolean
+  polishedText?: boolean
   timestamp?: boolean
   isForwarded?: boolean
   fwdFrom?: boolean
@@ -1171,11 +1636,12 @@ export type MessageSelectScalar = {
   createdAt?: boolean
 }
 
-export type MessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "accountId" | "sourceId" | "tgMessageId" | "tgChatId" | "senderId" | "senderName" | "senderUsername" | "text" | "timestamp" | "isForwarded" | "fwdFrom" | "matchedRuleIds" | "needsSummary" | "raw" | "createdAt", ExtArgs["result"]["message"]>
+export type MessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "accountId" | "sourceId" | "tgMessageId" | "tgChatId" | "senderId" | "senderName" | "senderUsername" | "senderAvatarKey" | "text" | "textHash" | "dupCount" | "lastSeenAt" | "messageLink" | "polishedText" | "timestamp" | "isForwarded" | "fwdFrom" | "matchedRuleIds" | "needsSummary" | "raw" | "createdAt", ExtArgs["result"]["message"]>
 export type MessageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   account?: boolean | Prisma.AccountDefaultArgs<ExtArgs>
   source?: boolean | Prisma.SourceDefaultArgs<ExtArgs>
   media?: boolean | Prisma.Message$mediaArgs<ExtArgs>
+  ruleHits?: boolean | Prisma.Message$ruleHitsArgs<ExtArgs>
   _count?: boolean | Prisma.MessageCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type MessageIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1193,6 +1659,7 @@ export type $MessagePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     account: Prisma.$AccountPayload<ExtArgs>
     source: Prisma.$SourcePayload<ExtArgs>
     media: Prisma.$MediaPayload<ExtArgs>[]
+    ruleHits: Prisma.$MessageRuleHitPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1203,7 +1670,13 @@ export type $MessagePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     senderId: string | null
     senderName: string | null
     senderUsername: string | null
+    senderAvatarKey: string | null
     text: string
+    textHash: string | null
+    dupCount: number
+    lastSeenAt: Date | null
+    messageLink: string | null
+    polishedText: string | null
     timestamp: Date
     isForwarded: boolean
     fwdFrom: string | null
@@ -1608,6 +2081,7 @@ export interface Prisma__MessageClient<T, Null = never, ExtArgs extends runtime.
   account<T extends Prisma.AccountDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.AccountDefaultArgs<ExtArgs>>): Prisma.Prisma__AccountClient<runtime.Types.Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   source<T extends Prisma.SourceDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SourceDefaultArgs<ExtArgs>>): Prisma.Prisma__SourceClient<runtime.Types.Result.GetResult<Prisma.$SourcePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   media<T extends Prisma.Message$mediaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Message$mediaArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MediaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  ruleHits<T extends Prisma.Message$ruleHitsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Message$ruleHitsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessageRuleHitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1645,7 +2119,13 @@ export interface MessageFieldRefs {
   readonly senderId: Prisma.FieldRef<"Message", 'String'>
   readonly senderName: Prisma.FieldRef<"Message", 'String'>
   readonly senderUsername: Prisma.FieldRef<"Message", 'String'>
+  readonly senderAvatarKey: Prisma.FieldRef<"Message", 'String'>
   readonly text: Prisma.FieldRef<"Message", 'String'>
+  readonly textHash: Prisma.FieldRef<"Message", 'String'>
+  readonly dupCount: Prisma.FieldRef<"Message", 'Int'>
+  readonly lastSeenAt: Prisma.FieldRef<"Message", 'DateTime'>
+  readonly messageLink: Prisma.FieldRef<"Message", 'String'>
+  readonly polishedText: Prisma.FieldRef<"Message", 'String'>
   readonly timestamp: Prisma.FieldRef<"Message", 'DateTime'>
   readonly isForwarded: Prisma.FieldRef<"Message", 'Boolean'>
   readonly fwdFrom: Prisma.FieldRef<"Message", 'String'>
@@ -2075,6 +2555,30 @@ export type Message$mediaArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.MediaScalarFieldEnum | Prisma.MediaScalarFieldEnum[]
+}
+
+/**
+ * Message.ruleHits
+ */
+export type Message$ruleHitsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MessageRuleHit
+   */
+  select?: Prisma.MessageRuleHitSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MessageRuleHit
+   */
+  omit?: Prisma.MessageRuleHitOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MessageRuleHitInclude<ExtArgs> | null
+  where?: Prisma.MessageRuleHitWhereInput
+  orderBy?: Prisma.MessageRuleHitOrderByWithRelationInput | Prisma.MessageRuleHitOrderByWithRelationInput[]
+  cursor?: Prisma.MessageRuleHitWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MessageRuleHitScalarFieldEnum | Prisma.MessageRuleHitScalarFieldEnum[]
 }
 
 /**

@@ -11,9 +11,9 @@
     "db:migrate": "pnpm --filter @tgdog/db migrate",
     "db:push": "pnpm --filter @tgdog/db push",
     "db:studio": "pnpm --filter @tgdog/db studio",
-    "docker:infra": "docker compose up -d postgres minio minio-init",
-    "docker:up": "docker compose --profile apps up -d --build",
-    "docker:down": "docker compose --profile apps down",
+    "docker:infra": "docker compose --profile minio up -d postgres minio minio-init",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f"
   },
   "engines": {

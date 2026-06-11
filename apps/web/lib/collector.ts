@@ -46,5 +46,12 @@ export const collector = {
     }),
   dialogs: (accountId: string) =>
     call(`/dialogs?accountId=${encodeURIComponent(accountId)}`),
+  backtest: (accountId: string, limit = 50) =>
+    call(`/backtest?accountId=${encodeURIComponent(accountId)}&limit=${limit}`),
+  backfill: (accountId: string, limit = 50) =>
+    call("/backfill", {
+      method: "POST",
+      body: JSON.stringify({ accountId, limit }),
+    }),
   health: () => call("/health"),
 };

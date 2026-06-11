@@ -1,5 +1,18 @@
+# tgDog 全栈部署：VPS 上配好 .env（媒体存储填 Cloudflare R2）后一条命令拉起全部服务
+#
+#   docker compose up -d --build
+#
+# 默认包含：postgres（数据库）+ migrate（自动跑 prisma migrate deploy）
+#           + collector（采集）+ web（界面，:3000）
+#
+# 不用 Cloudflare R2、想本地存媒体时才需要 MinIO（profile: minio）：
+#   docker compose --profile minio up -d --build
+#   此时 .env 里 R2_ENDPOINT 要写 http://minio:9000（容器内服务名）
+#
+# 注意：postgres / minio 端口只绑定 127.0.0.1，不暴露公网；web 的 3000 对外。
+# 仅起基础设施（本机开发）：docker compose --profile minio up -d postgres minio minio-init
+
 services:
-  # Postgres —— 本地数据库（替代 Supabase/Neon）
   postgres:
     image: postgres:17-alpine
     container_name: tgdog-postgres
@@ -9,7 +22,7 @@ services:
       POSTGRES_PASSWORD: tgdog
       POSTGRES_DB: tgdog
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -18,8 +31,9 @@ services:
       timeout: 5s
       retries: 10
 
-  # MinIO —— 本地 S3 兼容存储（替代 Cloudflare R2 做开发）
+  # 可选：S3 兼容存储，仅在不用 Cloudflare R2 时启用（--profile minio）
   minio:
+    profiles: ["minio"]
     image: minio/minio:latest
     container_name: tgdog-minio
     restart: unless-stopped
@@ -28,8 +42,8 @@ services:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     ports:
-      - "9000:9000"   # S3 API
-      - "9001:9001"   # 控制台 http://localhost:9001
+      - "127.0.0.1:9000:9000"   # S3 API
+      - "127.0.0.1:9001:9001"   # 控制台
     volumes:
       - miniodata:/data
     healthcheck:
@@ -38,8 +52,9 @@ services:
       timeout: 5s
       retries: 10
 
-  # 自动创建 bucket 并设为公开读（首次启动用）
+  # 自动创建 bucket 并设为公开读（幂等，重复执行无副作用）
   minio-init:
+    profiles: ["minio"]
     image: minio/mc:latest
     container_name: tgdog-minio-init
     depends_on:
@@ -53,40 +68,55 @@ services:
       echo 'bucket tgdog-media 已就绪（公开读）';
       "
 
-  # ===== 以下为可选：容器化运行 collector / web（profile: apps）=====
-  collector:
-    profiles: ["apps"]
+  # 一次性任务：对 postgres 执行 prisma migrate deploy（幂等）
+  migrate:
     build:
       context: .
       dockerfile: apps/collector/Dockerfile
+    image: tgdog-collector
+    container_name: tgdog-migrate
+    restart: "no"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://tgdog:tgdog@postgres:5432/tgdog
+    command: ["sh", "-c", "cd packages/db && pnpm exec prisma migrate deploy"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  collector:
+    build:
+      context: .
+      dockerfile: apps/collector/Dockerfile
+    image: tgdog-collector
     container_name: tgdog-collector
     restart: unless-stopped
     env_file: .env
     environment:
       DATABASE_URL: postgresql://tgdog:tgdog@postgres:5432/tgdog
       COLLECTOR_LOGIN_PORT: "8787"
-    ports:
-      - "8787:8787"
+      TZ: ${TZ:-Asia/Shanghai}
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
 
   web:
-    profiles: ["apps"]
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+    image: tgdog-web
     container_name: tgdog-web
     restart: unless-stopped
     env_file: .env
     environment:
       DATABASE_URL: postgresql://tgdog:tgdog@postgres:5432/tgdog
       COLLECTOR_LOGIN_URL: http://collector:8787
+      TZ: ${TZ:-Asia/Shanghai}
     ports:
       - "3000:3000"
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
       collector:
         condition: service_started
 

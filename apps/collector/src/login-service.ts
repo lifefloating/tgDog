@@ -250,6 +250,29 @@ export function startLoginServer(manager: ClientManager): void {
         return send(res, 200, { dialogs });
       }
 
+      // ===== 规则回测：用各监控源最近历史消息验证规则命中（不入库）=====
+      if (path === "/backtest" && req.method === "GET") {
+        const accountId = url.searchParams.get("accountId") ?? "";
+        if (!accountId) return send(res, 400, { error: "缺少 accountId" });
+        const limit = Math.min(
+          Number.parseInt(url.searchParams.get("limit") ?? "20", 10) || 20,
+          100,
+        );
+        const result = await manager.backtestRules(accountId, limit);
+        return send(res, 200, result);
+      }
+
+      // ===== 历史回填：把各监控源最近历史消息走完整入库管线 =====
+      if (path === "/backfill" && req.method === "POST") {
+        const { accountId, limit } = await readJson(req);
+        if (!accountId) return send(res, 400, { error: "缺少 accountId" });
+        const result = await manager.backfillHistory(
+          String(accountId),
+          Math.min(Number(limit) || 50, 200),
+        );
+        return send(res, 200, result);
+      }
+
       return send(res, 404, { error: "not found" });
     } catch (err) {
       console.error("[login] 出错:", (err as Error).message);

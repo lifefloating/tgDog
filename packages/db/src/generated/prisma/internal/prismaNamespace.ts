@@ -388,6 +388,7 @@ export const ModelName = {
   Source: 'Source',
   Rule: 'Rule',
   Message: 'Message',
+  MessageRuleHit: 'MessageRuleHit',
   Media: 'Media',
   Report: 'Report',
   Setting: 'Setting'
@@ -406,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "account" | "source" | "rule" | "message" | "media" | "report" | "setting"
+    modelProps: "account" | "source" | "rule" | "message" | "messageRuleHit" | "media" | "report" | "setting"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -703,6 +704,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.MessageCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.MessageCountAggregateOutputType> | number
+        }
+      }
+    }
+    MessageRuleHit: {
+      payload: Prisma.$MessageRuleHitPayload<ExtArgs>
+      fields: Prisma.MessageRuleHitFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MessageRuleHitFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageRuleHitPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MessageRuleHitFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageRuleHitPayload>
+        }
+        findFirst: {
+          args: Prisma.MessageRuleHitFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageRuleHitPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MessageRuleHitFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageRuleHitPayload>
+        }
+        findMany: {
+          args: Prisma.MessageRuleHitFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageRuleHitPayload>[]
+        }
+        create: {
+          args: Prisma.MessageRuleHitCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageRuleHitPayload>
+        }
+        createMany: {
+          args: Prisma.MessageRuleHitCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MessageRuleHitCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageRuleHitPayload>[]
+        }
+        delete: {
+          args: Prisma.MessageRuleHitDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageRuleHitPayload>
+        }
+        update: {
+          args: Prisma.MessageRuleHitUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageRuleHitPayload>
+        }
+        deleteMany: {
+          args: Prisma.MessageRuleHitDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MessageRuleHitUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MessageRuleHitUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageRuleHitPayload>[]
+        }
+        upsert: {
+          args: Prisma.MessageRuleHitUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageRuleHitPayload>
+        }
+        aggregate: {
+          args: Prisma.MessageRuleHitAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMessageRuleHit>
+        }
+        groupBy: {
+          args: Prisma.MessageRuleHitGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MessageRuleHitGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MessageRuleHitCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MessageRuleHitCountAggregateOutputType> | number
         }
       }
     }
@@ -1028,7 +1103,13 @@ export const MessageScalarFieldEnum = {
   senderId: 'senderId',
   senderName: 'senderName',
   senderUsername: 'senderUsername',
+  senderAvatarKey: 'senderAvatarKey',
   text: 'text',
+  textHash: 'textHash',
+  dupCount: 'dupCount',
+  lastSeenAt: 'lastSeenAt',
+  messageLink: 'messageLink',
+  polishedText: 'polishedText',
   timestamp: 'timestamp',
   isForwarded: 'isForwarded',
   fwdFrom: 'fwdFrom',
@@ -1039,6 +1120,16 @@ export const MessageScalarFieldEnum = {
 } as const
 
 export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
+
+
+export const MessageRuleHitScalarFieldEnum = {
+  id: 'id',
+  messageId: 'messageId',
+  ruleId: 'ruleId',
+  createdAt: 'createdAt'
+} as const
+
+export type MessageRuleHitScalarFieldEnum = (typeof MessageRuleHitScalarFieldEnum)[keyof typeof MessageRuleHitScalarFieldEnum]
 
 
 export const MediaScalarFieldEnum = {
@@ -1405,6 +1496,7 @@ export type GlobalOmitConfig = {
   source?: Prisma.SourceOmit
   rule?: Prisma.RuleOmit
   message?: Prisma.MessageOmit
+  messageRuleHit?: Prisma.MessageRuleHitOmit
   media?: Prisma.MediaOmit
   report?: Prisma.ReportOmit
   setting?: Prisma.SettingOmit

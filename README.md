@@ -2,6 +2,35 @@
 
 监控你在 Telegram 关注的频道、群组、私聊，按关键词/规则过滤入库，用 AI 生成每日报告，媒体存 Cloudflare R2。
 
+## 界面预览
+
+**每日报告** —— AI 汇总当日消息，自动提取报价并归一化品类比价：
+
+<img src="docs/images/report-list.png" alt="每日报告" width="100%" />
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/images/msgthread.png" alt="实时消息流" />
+      <p align="center"><sub>📡 实时消息流 · 命中规则实时入库，刷屏自动聚合去重</sub></p>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/images/rules.png" alt="规则配置" />
+      <p align="center"><sub>🎯 规则配置 · 关键词 / 正则 / 发送人过滤</sub></p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/images/accounts.png" alt="账号管理" />
+      <p align="center"><sub>👤 账号管理 · 扫码 / 手机号登录</sub></p>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/images/settings.png" alt="系统设置" />
+      <p align="center"><sub>⚙️ 系统设置 · R2 与 AI 配置</sub></p>
+    </td>
+  </tr>
+</table>
+
 ## 架构
 
 ```
@@ -41,18 +70,19 @@ pnpm dev:web                 # 终端 2 → http://localhost:3000
 - MinIO 控制台：http://localhost:9001 （minioadmin / minioadmin）
 - 媒体公开访问：http://localhost:9000/tgdog-media/...
 
-### 方式 B：全部容器化
+### 方式 B：全部容器化（VPS 部署用这个）
 
-collector 与 web 也跑进容器（profile `apps`）：
+一条命令拉起全部服务（postgres + 自动迁移 + collector + web，媒体存 Cloudflare R2）：
 
 ```bash
-cp .env.docker .env          # 补 Telegram / AI 配置
-pnpm docker:up               # build 并起 postgres + minio + collector + web
-# 首次需建表：
-docker compose exec collector sh -c "cd packages/db && pnpm exec prisma migrate deploy"
+cp .env.example .env         # 填 DATABASE_URL 以外的配置：Telegram / R2 / AI（默认登录密码 asdf1234）
+pnpm docker:up               # 等价于 docker compose up -d --build，建表自动完成
 pnpm docker:logs             # 看日志
 pnpm docker:down             # 停
 ```
+
+部署完访问 `http://<服务器IP>:3000`。postgres 端口只绑 127.0.0.1，不暴露公网。
+不用 Cloudflare R2 想本地存媒体时，加 MinIO：`docker compose --profile minio up -d --build`（此时 `.env` 里 `R2_ENDPOINT=http://minio:9000`）。
 
 ### 方式 C：纯本地（自带 Postgres / 用 Supabase/Neon）
 

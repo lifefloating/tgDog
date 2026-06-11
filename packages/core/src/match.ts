@@ -32,13 +32,53 @@ export interface MessageLike {
   sourceId: string;
 }
 
-/** 关键词匹配（不含发送人/媒体过滤）。keyword 为空表示匹配全部。 */
+/**
+ * 关键词匹配（不含发送人/媒体过滤）。keyword 为空表示匹配全部。
+ *
+ * EXACT / PARTIAL 支持多关键词组合：
+ * - 用 `|`、`,`、`，`、`、` 或换行分隔多组词 → 任一组命中即命中（OR）
+ * - 组内用 `+` 连接多个词 → 该组要求全部出现（AND）
+ *   例：`gemini+拼车|出kiro|卡网` 命中「gemini 12个月拼车」「出kiro 25块」「联系卡网」
+ * REGEX 模式下 keyword 原样作为正则使用。
+ */
 export function matchesKeyword(rule: RuleLike, text: string): boolean {
   const keyword = rule.keyword?.trim();
   if (!keyword) return true; // 无关键词 = 匹配该源全部消息
 
+  if (rule.matchType === "REGEX") {
+    try {
+      const re = new RegExp(keyword, rule.caseSensitive ? "" : "i");
+      return re.test(text);
+    } catch {
+      return false; // 非法正则不匹配
+    }
+  }
+
+  // OR 组：任意一组命中即可
+  const groups = keyword
+    .split(/[|,，、\n]/)
+    .map((g) => g.trim())
+    .filter(Boolean);
+  if (groups.length === 0) return true;
+
+  return groups.some((group) => {
+    // AND 词：组内全部出现才算命中
+    const terms = group
+      .split("+")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    return terms.every((term) => matchesSingleTerm(rule, text, term));
+  });
+}
+
+/** 单个词按 matchType 匹配 */
+function matchesSingleTerm(
+  rule: RuleLike,
+  text: string,
+  term: string,
+): boolean {
   const haystack = rule.caseSensitive ? text : text.toLowerCase();
-  const needle = rule.caseSensitive ? keyword : keyword.toLowerCase();
+  const needle = rule.caseSensitive ? term : term.toLowerCase();
 
   switch (rule.matchType) {
     case "EXACT": {
@@ -54,13 +94,6 @@ export function matchesKeyword(rule: RuleLike, text: string): boolean {
     }
     case "PARTIAL":
       return haystack.includes(needle);
-    case "REGEX":
-      try {
-        const re = new RegExp(keyword, rule.caseSensitive ? "" : "i");
-        return re.test(text);
-      } catch {
-        return false; // 非法正则不匹配
-      }
     default:
       return false;
   }

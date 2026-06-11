@@ -38,6 +38,11 @@ export type Rule = Prisma.RuleModel
  */
 export type Message = Prisma.MessageModel
 /**
+ * Model MessageRuleHit
+ * 规则命中记录：消息 ↔ 规则 多对多
+ */
+export type MessageRuleHit = Prisma.MessageRuleHitModel
+/**
  * Model Media
  * 媒体文件（已上传到 R2）
  */

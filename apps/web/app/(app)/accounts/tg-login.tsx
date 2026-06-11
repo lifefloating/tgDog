@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -49,6 +48,8 @@ export function TgLogin({
   useEffect(() => () => stopPoll(), [stopPoll]);
 
   const renderQr = useCallback(async (token: string) => {
+    // qrcode 只在真正生成二维码时按需加载，不进首屏 bundle
+    const QRCode = (await import("qrcode")).default;
     const url = `tg://login?token=${token}`;
     setQrDataUrl(await QRCode.toDataURL(url, { width: 240, margin: 1 }));
   }, []);

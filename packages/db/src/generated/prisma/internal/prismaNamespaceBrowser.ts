@@ -55,6 +55,7 @@ export const ModelName = {
   Source: 'Source',
   Rule: 'Rule',
   Message: 'Message',
+  MessageRuleHit: 'MessageRuleHit',
   Media: 'Media',
   Report: 'Report',
   Setting: 'Setting'
@@ -137,7 +138,13 @@ export const MessageScalarFieldEnum = {
   senderId: 'senderId',
   senderName: 'senderName',
   senderUsername: 'senderUsername',
+  senderAvatarKey: 'senderAvatarKey',
   text: 'text',
+  textHash: 'textHash',
+  dupCount: 'dupCount',
+  lastSeenAt: 'lastSeenAt',
+  messageLink: 'messageLink',
+  polishedText: 'polishedText',
   timestamp: 'timestamp',
   isForwarded: 'isForwarded',
   fwdFrom: 'fwdFrom',
@@ -148,6 +155,16 @@ export const MessageScalarFieldEnum = {
 } as const
 
 export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
+
+
+export const MessageRuleHitScalarFieldEnum = {
+  id: 'id',
+  messageId: 'messageId',
+  ruleId: 'ruleId',
+  createdAt: 'createdAt'
+} as const
+
+export type MessageRuleHitScalarFieldEnum = (typeof MessageRuleHitScalarFieldEnum)[keyof typeof MessageRuleHitScalarFieldEnum]
 
 
 export const MediaScalarFieldEnum = {

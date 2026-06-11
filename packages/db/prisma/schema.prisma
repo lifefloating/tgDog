@@ -86,6 +86,8 @@ model Rule {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
+  hits MessageRuleHit[]
+
   @@index([enabled])
   @@map("rules")
 }
@@ -103,32 +105,54 @@ enum MatchType {
 
 /// 入库的命中消息
 model Message {
-  id             String   @id @default(cuid())
-  accountId      String
-  account        Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  sourceId       String
-  source         Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
-  tgMessageId    String
-  tgChatId       String
-  senderId       String?
-  senderName     String?
-  senderUsername String?
-  text           String   @default("")
-  timestamp      DateTime // 消息在 Telegram 的时间
-  isForwarded    Boolean  @default(false)
-  fwdFrom        String?
-  matchedRuleIds Json     @default("[]") // 命中的规则 id 列表
-  needsSummary   Boolean  @default(true) // 是否待 AI 汇总
-  raw            Json? // 原始消息备份
-  createdAt      DateTime @default(now())
+  id              String   @id @default(cuid())
+  accountId       String
+  account         Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  sourceId        String
+  source          Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  tgMessageId     String
+  tgChatId        String
+  senderId        String?
+  senderName      String?
+  senderUsername  String?
+  senderAvatarKey String? // 发送人头像在 R2 的对象 key（经 web /api/avatar 代理读取）
+  text            String   @default("")
+  textHash        String? // 规范化文本的 sha256，用于刷屏去重
+  dupCount        Int      @default(1) // 同一发送人重复发送（刷屏）次数
+  lastSeenAt      DateTime? // 最近一次重复出现的时间
+  messageLink     String? // t.me 消息原始链接（私聊等无链接为 null）
+  polishedText    String? // AI 润色后的文本
+  timestamp       DateTime // 消息在 Telegram 的时间
+  isForwarded     Boolean  @default(false)
+  fwdFrom         String?
+  matchedRuleIds  Json     @default("[]") // 命中的规则 id 列表（冗余，详细见 ruleHits）
+  needsSummary    Boolean  @default(true) // 是否待 AI 汇总
+  raw             Json? // 原始消息备份
+  createdAt       DateTime @default(now())
 
-  media Media[]
+  media    Media[]
+  ruleHits MessageRuleHit[]
 
   @@unique([accountId, tgChatId, tgMessageId])
   @@index([sourceId, timestamp])
   @@index([timestamp])
   @@index([needsSummary])
+  @@index([senderId, textHash]) // 刷屏去重查询
   @@map("messages")
+}
+
+/// 规则命中记录：消息 ↔ 规则 多对多
+model MessageRuleHit {
+  id        String   @id @default(cuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  ruleId    String
+  rule      Rule     @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([messageId, ruleId])
+  @@index([ruleId, createdAt])
+  @@map("message_rule_hits")
 }
 
 /// 媒体文件（已上传到 R2）

@@ -86,7 +86,7 @@ export async function getObject(
 
 /** 生成头像存储 key：avatars/<kind>/<id>.jpg */
 export function buildAvatarKey(
-  kind: "account" | "source",
+  kind: "account" | "source" | "sender",
   id: string,
 ): string {
   const safeId = id.replace(/[^a-zA-Z0-9._-]/g, "_");

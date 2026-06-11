@@ -5,6 +5,8 @@ export interface CachedSource {
   id: string;
   tgChatId: string;
   enabled: boolean;
+  username: string | null;
+  type: string;
 }
 
 export interface AccountCache {
@@ -45,6 +47,8 @@ export class RuleCache {
         id: s.id,
         tgChatId: s.tgChatId,
         enabled: s.enabled,
+        username: s.username,
+        type: s.type,
       });
     }
 

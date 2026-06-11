@@ -2,7 +2,24 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* 浅色（默认） */
 :root {
+  --background: #f6f6f8;
+  --foreground: #1b1b20;
+  --card: #ffffff;
+  --card-foreground: #1b1b20;
+  --muted: #ececf0;
+  --muted-foreground: #6c6c78;
+  --border: #e0e0e6;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --accent: #e5e7eb;
+  --danger: #dc2626;
+  --success: #16a34a;
+}
+
+/* 深色 */
+.dark {
   --background: #0a0a0b;
   --foreground: #e7e7ea;
   --card: #141417;

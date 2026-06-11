@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createRule } from "./actions";
+import { createRule, polishRuleKeyword } from "./actions";
 
 interface SourceOption {
   id: string;
@@ -22,11 +22,33 @@ export function RuleForm({ sources }: { sources: SourceOption[] }) {
   const [mediaOnly, setMediaOnly] = useState(false);
   const [caseSensitive, setCaseSensitive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [polishing, startPolish] = useTransition();
 
   function toggleSource(id: string) {
     setSourceIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
+  }
+
+  /** AI 根据主题名称生成/优化关键词组合 */
+  function polishKeyword() {
+    if (!name.trim()) {
+      setError("先填写规则名称（监控主题），AI 才知道要捕获什么");
+      return;
+    }
+    setError(null);
+    startPolish(async () => {
+      try {
+        const suggestion = await polishRuleKeyword({
+          name: name.trim(),
+          keyword: keyword.trim() || undefined,
+        });
+        setKeyword(suggestion);
+        if (matchType === "REGEX") setMatchType("PARTIAL");
+      } catch (e) {
+        setError((e as Error).message);
+      }
+    });
   }
 
   function submit() {
@@ -74,13 +96,21 @@ export function RuleForm({ sources }: { sources: SourceOption[] }) {
           />
         </label>
         <label className="space-y-1">
-          <span className="text-xs text-muted-foreground">
-            关键词（留空 = 该源全部消息）
+          <span className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>关键词（| 分隔多组，+ 组合必须同时出现；留空 = 全部消息）</span>
+            <button
+              type="button"
+              onClick={polishKeyword}
+              disabled={polishing}
+              className="shrink-0 text-primary hover:underline disabled:opacity-50"
+            >
+              {polishing ? "生成中…" : "✨ AI 润色"}
+            </button>
           </span>
           <Input
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            placeholder="模糊关键字 / 正则"
+            placeholder="如：gemini+拼车|出kiro|卡网"
           />
         </label>
         <label className="space-y-1">

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/input";
 import { Avatar } from "@/components/avatar";
+import { tgChatLink } from "@/lib/utils";
 import {
   addSource,
   deleteSource,
@@ -19,9 +20,11 @@ interface ExistingSource {
   id: string;
   tgChatId: string;
   title: string;
+  username?: string | null;
   type: string;
   enabled: boolean;
   avatarKey?: string | null;
+  accountLabel: string;
 }
 interface Dialog {
   tgChatId: string;
@@ -134,38 +137,58 @@ export function SourceManager({
         {existing.length === 0 ? (
           <p className="py-4 text-sm text-muted-foreground">还没有监控源。</p>
         ) : (
-          existing.map((s) => (
-            <div
-              key={s.id}
-              className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm"
-            >
-              <Avatar avatarKey={s.avatarKey} name={s.title} />
-              <span className="min-w-0 flex-1 truncate">{s.title}</span>
-              <Badge>{s.type}</Badge>
-              <button
-                disabled={acting}
-                onClick={() =>
-                  startAct(() => toggleSource(s.id, !s.enabled).then(() => {}))
-                }
-                className={`rounded-md px-2 py-1 text-xs ${
-                  s.enabled
-                    ? "bg-success/20 text-success"
-                    : "bg-muted text-muted-foreground"
-                }`}
+          existing.map((s) => {
+            const link = tgChatLink({
+              username: s.username,
+              tgChatId: s.tgChatId,
+              type: s.type,
+            });
+            return (
+              <div
+                key={s.id}
+                className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm"
               >
-                {s.enabled ? "监控中" : "已暂停"}
-              </button>
-              <button
-                disabled={acting}
-                onClick={() =>
-                  startAct(() => deleteSource(s.id).then(() => {}))
-                }
-                className="text-xs text-danger hover:underline"
-              >
-                删除
-              </button>
-            </div>
-          ))
+                <Avatar avatarKey={s.avatarKey} name={s.title} />
+                {link ? (
+                  <a
+                    href={link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="min-w-0 flex-1 truncate hover:text-primary hover:underline"
+                    title="在 Telegram 中打开"
+                  >
+                    {s.title} ↗
+                  </a>
+                ) : (
+                  <span className="min-w-0 flex-1 truncate">{s.title}</span>
+                )}
+                <Badge>{s.type}</Badge>
+                {accounts.length > 1 && <Badge>{s.accountLabel}</Badge>}
+                <button
+                  disabled={acting}
+                  onClick={() =>
+                    startAct(() => toggleSource(s.id, !s.enabled).then(() => {}))
+                  }
+                  className={`rounded-md px-2 py-1 text-xs ${
+                    s.enabled
+                      ? "bg-success/20 text-success"
+                      : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {s.enabled ? "监控中" : "已暂停"}
+                </button>
+                <button
+                  disabled={acting}
+                  onClick={() =>
+                    startAct(() => deleteSource(s.id).then(() => {}))
+                  }
+                  className="text-xs text-danger hover:underline"
+                >
+                  删除
+                </button>
+              </div>
+            );
+          })
         )}
       </div>
     </div>

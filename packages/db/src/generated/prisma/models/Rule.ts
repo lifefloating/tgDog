@@ -227,6 +227,7 @@ export type RuleWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Rule"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Rule"> | Date | string
   sources?: Prisma.SourceListRelationFilter
+  hits?: Prisma.MessageRuleHitListRelationFilter
 }
 
 export type RuleOrderByWithRelationInput = {
@@ -242,6 +243,7 @@ export type RuleOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   sources?: Prisma.SourceOrderByRelationAggregateInput
+  hits?: Prisma.MessageRuleHitOrderByRelationAggregateInput
 }
 
 export type RuleWhereUniqueInput = Prisma.AtLeast<{
@@ -260,6 +262,7 @@ export type RuleWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Rule"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Rule"> | Date | string
   sources?: Prisma.SourceListRelationFilter
+  hits?: Prisma.MessageRuleHitListRelationFilter
 }, "id">
 
 export type RuleOrderByWithAggregationInput = {
@@ -309,6 +312,7 @@ export type RuleCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   sources?: Prisma.SourceCreateNestedManyWithoutRulesInput
+  hits?: Prisma.MessageRuleHitCreateNestedManyWithoutRuleInput
 }
 
 export type RuleUncheckedCreateInput = {
@@ -324,6 +328,7 @@ export type RuleUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   sources?: Prisma.SourceUncheckedCreateNestedManyWithoutRulesInput
+  hits?: Prisma.MessageRuleHitUncheckedCreateNestedManyWithoutRuleInput
 }
 
 export type RuleUpdateInput = {
@@ -339,6 +344,7 @@ export type RuleUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sources?: Prisma.SourceUpdateManyWithoutRulesNestedInput
+  hits?: Prisma.MessageRuleHitUpdateManyWithoutRuleNestedInput
 }
 
 export type RuleUncheckedUpdateInput = {
@@ -354,6 +360,7 @@ export type RuleUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   sources?: Prisma.SourceUncheckedUpdateManyWithoutRulesNestedInput
+  hits?: Prisma.MessageRuleHitUncheckedUpdateManyWithoutRuleNestedInput
 }
 
 export type RuleCreateManyInput = {
@@ -448,6 +455,11 @@ export type RuleMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
+export type RuleScalarRelationFilter = {
+  is?: Prisma.RuleWhereInput
+  isNot?: Prisma.RuleWhereInput
+}
+
 export type RuleCreateNestedManyWithoutSourcesInput = {
   create?: Prisma.XOR<Prisma.RuleCreateWithoutSourcesInput, Prisma.RuleUncheckedCreateWithoutSourcesInput> | Prisma.RuleCreateWithoutSourcesInput[] | Prisma.RuleUncheckedCreateWithoutSourcesInput[]
   connectOrCreate?: Prisma.RuleCreateOrConnectWithoutSourcesInput | Prisma.RuleCreateOrConnectWithoutSourcesInput[]
@@ -494,6 +506,20 @@ export type EnumMatchTypeFieldUpdateOperationsInput = {
   set?: $Enums.MatchType
 }
 
+export type RuleCreateNestedOneWithoutHitsInput = {
+  create?: Prisma.XOR<Prisma.RuleCreateWithoutHitsInput, Prisma.RuleUncheckedCreateWithoutHitsInput>
+  connectOrCreate?: Prisma.RuleCreateOrConnectWithoutHitsInput
+  connect?: Prisma.RuleWhereUniqueInput
+}
+
+export type RuleUpdateOneRequiredWithoutHitsNestedInput = {
+  create?: Prisma.XOR<Prisma.RuleCreateWithoutHitsInput, Prisma.RuleUncheckedCreateWithoutHitsInput>
+  connectOrCreate?: Prisma.RuleCreateOrConnectWithoutHitsInput
+  upsert?: Prisma.RuleUpsertWithoutHitsInput
+  connect?: Prisma.RuleWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RuleUpdateToOneWithWhereWithoutHitsInput, Prisma.RuleUpdateWithoutHitsInput>, Prisma.RuleUncheckedUpdateWithoutHitsInput>
+}
+
 export type RuleCreateWithoutSourcesInput = {
   id?: string
   name: string
@@ -506,6 +532,7 @@ export type RuleCreateWithoutSourcesInput = {
   mediaOnly?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  hits?: Prisma.MessageRuleHitCreateNestedManyWithoutRuleInput
 }
 
 export type RuleUncheckedCreateWithoutSourcesInput = {
@@ -520,6 +547,7 @@ export type RuleUncheckedCreateWithoutSourcesInput = {
   mediaOnly?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  hits?: Prisma.MessageRuleHitUncheckedCreateNestedManyWithoutRuleInput
 }
 
 export type RuleCreateOrConnectWithoutSourcesInput = {
@@ -560,6 +588,82 @@ export type RuleScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Rule"> | Date | string
 }
 
+export type RuleCreateWithoutHitsInput = {
+  id?: string
+  name: string
+  enabled?: boolean
+  scopeMode?: $Enums.ScopeMode
+  keyword?: string | null
+  matchType?: $Enums.MatchType
+  caseSensitive?: boolean
+  senderFilter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  mediaOnly?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sources?: Prisma.SourceCreateNestedManyWithoutRulesInput
+}
+
+export type RuleUncheckedCreateWithoutHitsInput = {
+  id?: string
+  name: string
+  enabled?: boolean
+  scopeMode?: $Enums.ScopeMode
+  keyword?: string | null
+  matchType?: $Enums.MatchType
+  caseSensitive?: boolean
+  senderFilter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  mediaOnly?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sources?: Prisma.SourceUncheckedCreateNestedManyWithoutRulesInput
+}
+
+export type RuleCreateOrConnectWithoutHitsInput = {
+  where: Prisma.RuleWhereUniqueInput
+  create: Prisma.XOR<Prisma.RuleCreateWithoutHitsInput, Prisma.RuleUncheckedCreateWithoutHitsInput>
+}
+
+export type RuleUpsertWithoutHitsInput = {
+  update: Prisma.XOR<Prisma.RuleUpdateWithoutHitsInput, Prisma.RuleUncheckedUpdateWithoutHitsInput>
+  create: Prisma.XOR<Prisma.RuleCreateWithoutHitsInput, Prisma.RuleUncheckedCreateWithoutHitsInput>
+  where?: Prisma.RuleWhereInput
+}
+
+export type RuleUpdateToOneWithWhereWithoutHitsInput = {
+  where?: Prisma.RuleWhereInput
+  data: Prisma.XOR<Prisma.RuleUpdateWithoutHitsInput, Prisma.RuleUncheckedUpdateWithoutHitsInput>
+}
+
+export type RuleUpdateWithoutHitsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  scopeMode?: Prisma.EnumScopeModeFieldUpdateOperationsInput | $Enums.ScopeMode
+  keyword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  matchType?: Prisma.EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+  caseSensitive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  senderFilter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  mediaOnly?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sources?: Prisma.SourceUpdateManyWithoutRulesNestedInput
+}
+
+export type RuleUncheckedUpdateWithoutHitsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  enabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  scopeMode?: Prisma.EnumScopeModeFieldUpdateOperationsInput | $Enums.ScopeMode
+  keyword?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  matchType?: Prisma.EnumMatchTypeFieldUpdateOperationsInput | $Enums.MatchType
+  caseSensitive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  senderFilter?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  mediaOnly?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sources?: Prisma.SourceUncheckedUpdateManyWithoutRulesNestedInput
+}
+
 export type RuleUpdateWithoutSourcesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
@@ -572,6 +676,7 @@ export type RuleUpdateWithoutSourcesInput = {
   mediaOnly?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hits?: Prisma.MessageRuleHitUpdateManyWithoutRuleNestedInput
 }
 
 export type RuleUncheckedUpdateWithoutSourcesInput = {
@@ -586,6 +691,7 @@ export type RuleUncheckedUpdateWithoutSourcesInput = {
   mediaOnly?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  hits?: Prisma.MessageRuleHitUncheckedUpdateManyWithoutRuleNestedInput
 }
 
 export type RuleUncheckedUpdateManyWithoutSourcesInput = {
@@ -609,10 +715,12 @@ export type RuleUncheckedUpdateManyWithoutSourcesInput = {
 
 export type RuleCountOutputType = {
   sources: number
+  hits: number
 }
 
 export type RuleCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sources?: boolean | RuleCountOutputTypeCountSourcesArgs
+  hits?: boolean | RuleCountOutputTypeCountHitsArgs
 }
 
 /**
@@ -632,6 +740,13 @@ export type RuleCountOutputTypeCountSourcesArgs<ExtArgs extends runtime.Types.Ex
   where?: Prisma.SourceWhereInput
 }
 
+/**
+ * RuleCountOutputType without action
+ */
+export type RuleCountOutputTypeCountHitsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.MessageRuleHitWhereInput
+}
+
 
 export type RuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -646,6 +761,7 @@ export type RuleSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   createdAt?: boolean
   updatedAt?: boolean
   sources?: boolean | Prisma.Rule$sourcesArgs<ExtArgs>
+  hits?: boolean | Prisma.Rule$hitsArgs<ExtArgs>
   _count?: boolean | Prisma.RuleCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["rule"]>
 
@@ -694,6 +810,7 @@ export type RuleSelectScalar = {
 export type RuleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "enabled" | "scopeMode" | "keyword" | "matchType" | "caseSensitive" | "senderFilter" | "mediaOnly" | "createdAt" | "updatedAt", ExtArgs["result"]["rule"]>
 export type RuleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   sources?: boolean | Prisma.Rule$sourcesArgs<ExtArgs>
+  hits?: boolean | Prisma.Rule$hitsArgs<ExtArgs>
   _count?: boolean | Prisma.RuleCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RuleIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -703,6 +820,7 @@ export type $RulePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "Rule"
   objects: {
     sources: Prisma.$SourcePayload<ExtArgs>[]
+    hits: Prisma.$MessageRuleHitPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1111,6 +1229,7 @@ readonly fields: RuleFieldRefs;
 export interface Prisma__RuleClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   sources<T extends Prisma.Rule$sourcesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Rule$sourcesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SourcePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  hits<T extends Prisma.Rule$hitsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Rule$hitsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessageRuleHitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1565,6 +1684,30 @@ export type Rule$sourcesArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.SourceScalarFieldEnum | Prisma.SourceScalarFieldEnum[]
+}
+
+/**
+ * Rule.hits
+ */
+export type Rule$hitsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the MessageRuleHit
+   */
+  select?: Prisma.MessageRuleHitSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the MessageRuleHit
+   */
+  omit?: Prisma.MessageRuleHitOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.MessageRuleHitInclude<ExtArgs> | null
+  where?: Prisma.MessageRuleHitWhereInput
+  orderBy?: Prisma.MessageRuleHitOrderByWithRelationInput | Prisma.MessageRuleHitOrderByWithRelationInput[]
+  cursor?: Prisma.MessageRuleHitWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.MessageRuleHitScalarFieldEnum | Prisma.MessageRuleHitScalarFieldEnum[]
 }
 
 /**

@@ -6,6 +6,8 @@ import {
   decrypt,
   uploadBuffer,
   buildAvatarKey,
+  matchedRuleIds,
+  type MessageLike,
   type R2Config,
 } from "@tgdog/core";
 import { RuleCache } from "./rule-cache.js";
@@ -20,6 +22,14 @@ interface RunningAccount {
   removeHandler: () => void;
 }
 
+// Telegram 对 GetHistory 的 flood 限制约为 10 次/30 秒（Telethon 文档），
+// 拉历史时每个源之间隔 1s，避免源多时触发 420 FLOOD_WAIT。
+const HISTORY_PACING_MS = 1000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 /**
  * 管理所有已登录账号的 GramJS 客户端：连接、监听、热加载规则、媒体入 R2。
  */
@@ -28,6 +38,7 @@ export class ClientManager {
   private ruleCache = new RuleCache();
   private r2: R2Config | null = null;
   private reloadTimer?: NodeJS.Timeout;
+  private lastAvatarBackfillAt = 0;
 
   async start(): Promise<void> {
     this.r2 = await loadR2Config();
@@ -50,7 +61,13 @@ export class ClientManager {
         await this.ruleCache.refresh(acc.accountId);
       }
       await this.syncAccounts(); // 接入新登录的账号
-      await this.backfillSourceAvatars(); // 给缺头像的已监控源补抓
+
+      // 头像补抓会调 Telegram API（getEntity/下载），按独立的慢节奏跑，
+      // 避免跟着热加载频率打满 API 触发 FLOOD_WAIT
+      if (Date.now() - this.lastAvatarBackfillAt >= env.avatarBackfillMs) {
+        this.lastAvatarBackfillAt = Date.now();
+        await this.backfillSourceAvatars();
+      }
     } catch (err) {
       console.error("[manager] reload 出错:", (err as Error).message);
     }
@@ -100,11 +117,25 @@ export class ClientManager {
     }
   }
 
-  /** 把 DB 里 ACTIVE 且有 session 的账号都连上 */
+  /** 把 DB 里 ACTIVE 且有 session 的账号都连上；已删除/停用的账号断开 */
   async syncAccounts(): Promise<void> {
     const accounts = await prisma.account.findMany({
       where: { status: "ACTIVE", sessionEnc: { not: null } },
     });
+
+    // 断开 DB 里已不存在（被删除/停用）的账号
+    const activeIds = new Set(accounts.map((a) => a.id));
+    for (const [id, acc] of this.running) {
+      if (activeIds.has(id)) continue;
+      try {
+        acc.removeHandler();
+        await acc.client.disconnect();
+      } catch {
+        // ignore
+      }
+      this.running.delete(id);
+      console.log(`[manager] 账号 ${id} 已从 DB 移除，断开连接`);
+    }
 
     for (const acc of accounts) {
       if (this.running.has(acc.id)) continue;
@@ -264,6 +295,123 @@ export class ClientManager {
 
   getClient(accountId: string): TelegramClient | undefined {
     return this.running.get(accountId)?.client;
+  }
+
+  /**
+   * 规则回测：拉每个监控源最近 limit 条历史消息跑一遍规则匹配。
+   * 用于验证 chatId 映射、规则关键词在真实消息上的命中情况（不入库）。
+   */
+  async backtestRules(
+    accountId: string,
+    limit = 20,
+  ): Promise<{
+    rules: { id: string; keyword: string | null }[];
+    sources: {
+      tgChatId: string;
+      username: string | null;
+      fetched: number;
+      /** 历史消息上的 msg.chatId 与源 tgChatId 不一致时给出实际值 */
+      chatIdMismatch: string | null;
+      hits: {
+        tgMessageId: string;
+        ruleIds: string[];
+        text: string;
+        date: string | null;
+      }[];
+      error?: string;
+    }[];
+  }> {
+    const acc = this.running.get(accountId);
+    if (!acc) throw new Error("账号未连接");
+    const cache = await this.ruleCache.refresh(accountId);
+
+    const sources: Awaited<
+      ReturnType<ClientManager["backtestRules"]>
+    >["sources"] = [];
+
+    for (const source of cache.sourcesByChatId.values()) {
+      const entry: (typeof sources)[number] = {
+        tgChatId: source.tgChatId,
+        username: source.username,
+        fetched: 0,
+        chatIdMismatch: null,
+        hits: [],
+      };
+      try {
+        const msgs = await acc.client.getMessages(source.tgChatId, { limit });
+        for (const msg of msgs) {
+          entry.fetched++;
+          const eventChatId = String(msg.chatId ?? "");
+          if (eventChatId && eventChatId !== source.tgChatId) {
+            entry.chatIdMismatch = eventChatId;
+          }
+          const text = msg.message ?? "";
+          const msgLike: MessageLike = {
+            text,
+            hasMedia: !!msg.media,
+            senderId: msg.senderId ? String(msg.senderId) : undefined,
+            sourceId: source.id,
+          };
+          const ruleIds = matchedRuleIds(cache.rules, msgLike);
+          if (ruleIds.length > 0) {
+            entry.hits.push({
+              tgMessageId: String(msg.id),
+              ruleIds,
+              text: text.slice(0, 120),
+              date: msg.date ? new Date(msg.date * 1000).toISOString() : null,
+            });
+          }
+        }
+      } catch (err) {
+        entry.error = (err as Error).message;
+      }
+      sources.push(entry);
+      await sleep(HISTORY_PACING_MS);
+    }
+
+    return {
+      rules: cache.rules.map((r) => ({ id: r.id, keyword: r.keyword })),
+      sources,
+    };
+  }
+
+  /**
+   * 历史回填：把各监控源最近 limit 条历史消息走完整入库管线
+   * （命中规则才入库，含刷屏去重/媒体/规则命中记录）。
+   */
+  async backfillHistory(
+    accountId: string,
+    limit = 50,
+  ): Promise<{ scanned: number; saved: number; errors: string[] }> {
+    const acc = this.running.get(accountId);
+    if (!acc) throw new Error("账号未连接");
+    const cache = await this.ruleCache.refresh(accountId);
+
+    let scanned = 0;
+    let saved = 0;
+    const errors: string[] = [];
+    for (const source of cache.sourcesByChatId.values()) {
+      try {
+        const msgs = await acc.client.getMessages(source.tgChatId, { limit });
+        // 从旧到新处理，让刷屏去重的 lastSeenAt 按时间正序推进
+        for (const msg of [...msgs].reverse()) {
+          scanned++;
+          const ok = await handleMessage(
+            acc.client,
+            accountId,
+            cache,
+            this.r2,
+            msg,
+          );
+          if (ok) saved++;
+        }
+      } catch (err) {
+        errors.push(`${source.tgChatId}: ${(err as Error).message}`);
+      }
+      await sleep(HISTORY_PACING_MS);
+    }
+    console.log(`[manager] 历史回填完成：扫描 ${scanned} 条，入库 ${saved} 条`);
+    return { scanned, saved, errors };
   }
 
   async stop(): Promise<void> {

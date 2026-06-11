@@ -18,8 +18,23 @@ export async function loadAiConfig(): Promise<AiConfig | null> {
   return { baseURL, apiKey, model };
 }
 
+/**
+ * 规范化 baseURL（与 Cherry Studio 行为一致）：
+ * - 末尾带 `#` → 强制按原样使用（去掉 # 和尾部斜杠）
+ * - 已以 /v1、/v2 等版本路径结尾 → 原样使用
+ * - 其他情况自动补 `/v1`（多数 OpenAI 兼容网关的标准路径）
+ */
+export function normalizeBaseUrl(raw: string): string {
+  let url = raw.trim();
+  if (!url) return url;
+  if (url.endsWith("#")) return url.slice(0, -1).replace(/\/+$/, "");
+  url = url.replace(/\/+$/, "");
+  if (/\/v\d+[a-z]*$/i.test(url)) return url;
+  return `${url}/v1`;
+}
+
 export function makeClient(cfg: AiConfig): OpenAI {
-  return new OpenAI({ baseURL: cfg.baseURL, apiKey: cfg.apiKey });
+  return new OpenAI({ baseURL: normalizeBaseUrl(cfg.baseURL), apiKey: cfg.apiKey });
 }
 
 /** 单次对话补全，返回文本 */
@@ -29,13 +44,28 @@ export async function complete(
   user: string,
 ): Promise<string> {
   const client = makeClient(cfg);
-  const res = await client.chat.completions.create({
-    model: cfg.model,
-    messages: [
-      { role: "system", content: system },
-      { role: "user", content: user },
-    ],
-    temperature: 0.3,
-  });
-  return res.choices[0]?.message?.content ?? "";
+  let res;
+  try {
+    res = await client.chat.completions.create({
+      model: cfg.model,
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
+      temperature: 0.3,
+    });
+  } catch (err) {
+    // OpenAI SDK 对非 2xx 会抛错，带上状态码/信息转成可读提示
+    throw new Error(`AI 请求失败: ${(err as Error).message}`);
+  }
+
+  const content = res?.choices?.[0]?.message?.content;
+  if (!content) {
+    // 部分兼容网关出错时返回 200 + 非标准结构（无 choices），把原始响应带出来便于排查
+    const raw = JSON.stringify(res ?? null).slice(0, 300);
+    throw new Error(
+      `AI 返回异常（无 choices，请检查设置页的 baseUrl/model 是否正确）: ${raw}`,
+    );
+  }
+  return content;
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@tgdog/db";
 import { Card, CardContent } from "@/components/ui/card";
+import { localDateKey } from "@/lib/utils";
 import { GenerateButton } from "./generate-button";
 
 export const dynamic = "force-dynamic";
@@ -20,11 +21,18 @@ export default async function ReportsPage() {
     take: 60,
   });
 
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayReport = await prisma.report.findUnique({
+    where: { date_scope: { date: todayStart, scope: "global" } },
+    select: { id: true },
+  });
+
   return (
-    <div className="space-y-5">
+    <div className="mx-auto w-full max-w-5xl space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-semibold">每日报告</h1>
-        <GenerateButton />
+        <GenerateButton hasToday={!!todayReport} />
       </div>
 
       {reports.length === 0 ? (
@@ -37,7 +45,7 @@ export default async function ReportsPage() {
         <div className="space-y-2">
           {reports.map((r) => {
             const stats = (r.stats as Stats) ?? {};
-            const dateKey = new Date(r.date).toISOString().slice(0, 10);
+            const dateKey = localDateKey(r.date);
             return (
               <Link
                 key={r.id}

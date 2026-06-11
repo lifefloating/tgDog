@@ -7,7 +7,7 @@ export default async function SettingsPage() {
   const s = await prisma.setting.findUnique({ where: { id: "singleton" } });
 
   return (
-    <div className="space-y-5">
+    <div className="mx-auto w-full max-w-5xl space-y-5">
       <h1 className="text-lg font-semibold">设置</h1>
       <SettingsForm
         initial={{
