@@ -54,6 +54,7 @@ export async function complete(
   user: string,
 ): Promise<string> {
   const client = makeClient(cfg);
+  const t0 = Date.now();
   let res;
   try {
     res = await client.chat.completions.create({
@@ -65,9 +66,13 @@ export async function complete(
       temperature: 0.3,
     });
   } catch (err) {
+    console.warn(`[ai] 调用失败 (${Date.now() - t0}ms): ${(err as Error).message}`);
     // OpenAI SDK 对非 2xx 会抛错，带上状态码/信息转成可读提示
     throw new Error(`AI 请求失败: ${(err as Error).message}`);
   }
+  console.log(
+    `[ai] 单次补全 ${Date.now() - t0}ms (in≈${user.length}字, out≈${res?.choices?.[0]?.message?.content?.length ?? 0}字)`,
+  );
 
   const content = res?.choices?.[0]?.message?.content;
   if (!content) {

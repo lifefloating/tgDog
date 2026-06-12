@@ -377,6 +377,7 @@ export async function generateReport(
   const cfg = await loadAiConfig();
   if (!cfg) return { ok: false, error: "AI 未配置（请在设置里填写 API Key）" };
 
+  const tStart = Date.now();
   onProgress?.({
     phase: "loading",
     done: 0,
@@ -390,11 +391,15 @@ export async function generateReport(
     ...(scope !== "global" ? { sourceId: scope } : {}),
   };
 
+  const tDb = Date.now();
   const messages = await prisma.message.findMany({
     where,
     orderBy: { timestamp: "asc" },
     include: { source: true },
   });
+  console.log(
+    `[report] DB 拉取 ${messages.length} 条消息耗时 ${Date.now() - tDb}ms`,
+  );
 
   if (messages.length === 0) {
     return { ok: false, error: "该日没有消息可汇总" };
@@ -432,6 +437,7 @@ export async function generateReport(
 
   // 汇总与报价提取互不依赖，并行跑（各自内部还有 AI_CONCURRENCY 限并发）。
   // summarize 失败要整体报错；quotes 失败只丢报价表，故分别 catch。
+  const tAi = Date.now();
   const summaryPromise = summarizeChunks(cfg, rows, onProgress);
   const quotesPromise = extractQuotes(cfg, messages, onProgress).then(
     (quotes) => {
@@ -450,6 +456,7 @@ export async function generateReport(
   } catch (e) {
     return { ok: false, error: `AI 调用失败：${(e as Error).message}` };
   }
+  console.log(`[report] AI 阶段（汇总+报价，并行）耗时 ${Date.now() - tAi}ms`);
 
   onProgress?.({
     phase: "saving",
@@ -458,6 +465,7 @@ export async function generateReport(
     message: "正在保存报告…",
   });
 
+  const tSave = Date.now();
   const report = await prisma.report.upsert({
     where: { date_scope: { date: start, scope } },
     update: {
@@ -484,6 +492,9 @@ export async function generateReport(
     where,
     data: { needsSummary: false },
   });
+  console.log(
+    `[report] 保存+标记耗时 ${Date.now() - tSave}ms；总耗时 ${Date.now() - tStart}ms（${messages.length} 条消息）`,
+  );
 
   return { ok: true, reportId: report.id };
 }
