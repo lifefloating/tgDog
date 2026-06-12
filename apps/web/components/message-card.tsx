@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/input";
 import { Avatar } from "@/components/avatar";
@@ -34,6 +35,9 @@ export function MessageCard({
   const [expanded, setExpanded] = useState(false);
   /** 当前在 lightbox 中查看的图片代理地址，null 表示关闭 */
   const [lightbox, setLightbox] = useState<string | null>(null);
+  /** SSR 阶段无 document，挂载后才允许 portal */
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   // 打开 lightbox 时监听 ESC 关闭
   useEffect(() => {
@@ -186,32 +190,35 @@ export function MessageCard({
         </div>
       </div>
 
-      {/* 图片 lightbox：遮罩 + 居中大图，点遮罩 / X / ESC 关闭 */}
-      {lightbox && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-          onClick={() => setLightbox(null)}
-          role="dialog"
-          aria-modal="true"
-        >
-          <button
-            type="button"
+      {/* 图片 lightbox：portal 到 body，遮罩覆盖整页，点遮罩 / X / ESC 关闭 */}
+      {lightbox &&
+        mounted &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4"
             onClick={() => setLightbox(null)}
-            aria-label="关闭"
-            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-2xl leading-none text-white hover:bg-white/20"
+            role="dialog"
+            aria-modal="true"
           >
-            ×
-          </button>
-          {/* 阻止点击图片本身冒泡到遮罩导致关闭 */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={lightbox}
-            alt="预览"
-            onClick={(e) => e.stopPropagation()}
-            className="max-h-[90vh] max-w-[90vw] rounded-md object-contain"
-          />
-        </div>
-      )}
+            <button
+              type="button"
+              onClick={() => setLightbox(null)}
+              aria-label="关闭"
+              className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-2xl leading-none text-white hover:bg-white/20"
+            >
+              ×
+            </button>
+            {/* 阻止点击图片本身冒泡到遮罩导致关闭 */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={lightbox}
+              alt="预览"
+              onClick={(e) => e.stopPropagation()}
+              className="max-h-[95vh] max-w-[95vw] object-contain"
+            />
+          </div>,
+          document.body,
+        )}
     </Card>
   );
 }
