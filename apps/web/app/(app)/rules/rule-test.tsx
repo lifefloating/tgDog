@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import {
   testRuleText,
@@ -37,6 +37,16 @@ function dateStamp() {
   return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
 }
 
+/** 内联转圈图标，用于回填等长耗时操作的进行态 */
+function Spinner({ className = "" }: { className?: string }) {
+  return (
+    <span
+      className={`inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent ${className}`}
+      aria-hidden="true"
+    />
+  );
+}
+
 /** 规则命中测试：示例文本即时测试 + 用各源最近消息回测 */
 export function RuleTest() {
   const [text, setText] = useState("");
@@ -48,7 +58,29 @@ export function RuleTest() {
   const [backfilling, startBackfill] = useTransition();
   const [backfillResult, setBackfillResult] = useState<string | null>(null);
   const [backfillLimit, setBackfillLimit] = useState(200);
+  const [backfillElapsed, setBackfillElapsed] = useState(0);
+  const backfillTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [exporting, startExport] = useTransition();
+
+  // 回填进行中每秒推进一次已用时计数；结束/卸载时清掉定时器
+  useEffect(() => {
+    if (backfilling) {
+      setBackfillElapsed(0);
+      const startedAt = Date.now();
+      backfillTimer.current = setInterval(() => {
+        setBackfillElapsed(Math.floor((Date.now() - startedAt) / 1000));
+      }, 1000);
+    } else if (backfillTimer.current) {
+      clearInterval(backfillTimer.current);
+      backfillTimer.current = null;
+    }
+    return () => {
+      if (backfillTimer.current) {
+        clearInterval(backfillTimer.current);
+        backfillTimer.current = null;
+      }
+    };
+  }, [backfilling]);
 
   function runTest() {
     setError(null);
@@ -171,7 +203,14 @@ export function RuleTest() {
           disabled={backfilling}
           title="把各监控源最近 N 条历史消息走完整入库管线，命中规则的会出现在消息流"
         >
-          {backfilling ? "回填中…" : "回填历史消息"}
+          {backfilling ? (
+            <span className="flex items-center gap-1.5">
+              <Spinner />
+              回填中 {backfillElapsed}s…
+            </span>
+          ) : (
+            "回填历史消息"
+          )}
         </Button>
         <Button
           variant="outline"
@@ -192,6 +231,20 @@ export function RuleTest() {
       </div>
 
       {error && <p className="text-xs text-danger">{error}</p>}
+      {backfilling && (
+        <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/40 p-3 text-xs">
+          <Spinner className="mt-0.5 shrink-0" />
+          <div className="space-y-0.5">
+            <div className="font-medium text-foreground">
+              正在回填历史（每源 {backfillLimit} 条）· 已用 {backfillElapsed}s
+            </div>
+            <div className="text-muted-foreground">
+              逐源拉取，源越多 / 条数越大耗时越长，期间请勿关闭或刷新本页。
+              回填在服务端进行，完成后这里会显示结果。
+            </div>
+          </div>
+        </div>
+      )}
       {backfillResult && (
         <p className="text-xs text-muted-foreground">{backfillResult}</p>
       )}
