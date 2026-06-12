@@ -6,6 +6,7 @@ import {
   testRuleText,
   backtestRecentMessages,
   backfillHistory,
+  exportRulesData,
   type RuleTestResult,
   type BacktestSource,
 } from "./actions";
@@ -18,6 +19,24 @@ const hitTimeFmt = new Intl.DateTimeFormat("zh-CN", {
   minute: "2-digit",
 });
 
+/** 触发浏览器下载一个文本文件 */
+function downloadText(filename: string, content: string, mime: string) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/** 文件名用的本地日期戳，如 20260612 */
+function dateStamp() {
+  const d = new Date();
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+}
+
 /** 规则命中测试：示例文本即时测试 + 用各源最近消息回测 */
 export function RuleTest() {
   const [text, setText] = useState("");
@@ -28,6 +47,7 @@ export function RuleTest() {
   const [backtesting, startBacktest] = useTransition();
   const [backfilling, startBackfill] = useTransition();
   const [backfillResult, setBackfillResult] = useState<string | null>(null);
+  const [exporting, startExport] = useTransition();
 
   function runTest() {
     setError(null);
@@ -63,6 +83,38 @@ export function RuleTest() {
             (r.errors.length ? `（${r.errors.length} 个源拉取失败）` : "") +
             "。去「消息流」页查看。",
         );
+      } catch (e) {
+        setError((e as Error).message);
+      }
+    });
+  }
+
+  /** 下载全部规则关键词：fmt=txt 人读，fmt=json 可备份/复用 */
+  function runExport(fmt: "txt" | "json") {
+    setError(null);
+    startExport(async () => {
+      try {
+        const rules = await exportRulesData();
+        if (rules.length === 0) {
+          setError("还没有任何规则可导出");
+          return;
+        }
+        if (fmt === "json") {
+          downloadText(
+            `规则关键词-${dateStamp()}.json`,
+            JSON.stringify(rules, null, 2),
+            "application/json",
+          );
+        } else {
+          const body = rules
+            .map((r) => `${r.name}: ${r.keyword ?? "（无关键词）"}`)
+            .join("\n");
+          downloadText(
+            `规则关键词-${dateStamp()}.txt`,
+            body + "\n",
+            "text/plain;charset=utf-8",
+          );
+        }
       } catch (e) {
         setError((e as Error).message);
       }
@@ -107,6 +159,22 @@ export function RuleTest() {
           title="把各监控源最近 50 条历史消息走完整入库管线，命中规则的会出现在消息流"
         >
           {backfilling ? "回填中…" : "回填历史消息"}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => runExport("txt")}
+          disabled={exporting}
+          title="下载全部规则的「名称: 关键词」文本，方便查阅"
+        >
+          下载关键词 .txt
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => runExport("json")}
+          disabled={exporting}
+          title="下载全部规则的完整数据（含匹配类型等），用于备份 / 复用"
+        >
+          .json
         </Button>
       </div>
 

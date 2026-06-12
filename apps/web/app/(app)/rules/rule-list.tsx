@@ -111,7 +111,7 @@ function RuleEditForm({
         </label>
         <label className="space-y-1">
           <span className="text-xs text-muted-foreground">
-            关键词（| 分隔多组，+ 组合必须同时出现；留空 = 全部消息）
+            关键词（英文 | 分隔多组，+ 组合必须同时出现；留空 = 全部消息）
           </span>
           <Input
             value={keyword}

@@ -236,6 +236,33 @@ export async function testRuleText(text: string): Promise<RuleTestResult[]> {
   }));
 }
 
+export interface RuleExportItem {
+  name: string;
+  keyword: string | null;
+  matchType: MatchType;
+  caseSensitive: boolean;
+  scopeMode: ScopeMode;
+  mediaOnly: boolean;
+  enabled: boolean;
+}
+
+/** 导出全部规则关键词，供下载备份 / 后续复用 */
+export async function exportRulesData(): Promise<RuleExportItem[]> {
+  const rules = await prisma.rule.findMany({
+    orderBy: { createdAt: "desc" },
+    select: {
+      name: true,
+      keyword: true,
+      matchType: true,
+      caseSensitive: true,
+      scopeMode: true,
+      mediaOnly: true,
+      enabled: true,
+    },
+  });
+  return rules;
+}
+
 export interface BacktestSource {
   tgChatId: string;
   username: string | null;

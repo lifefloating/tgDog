@@ -97,7 +97,7 @@ export function RuleForm({ sources }: { sources: SourceOption[] }) {
         </label>
         <label className="space-y-1">
           <span className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>关键词（| 分隔多组，+ 组合必须同时出现；留空 = 全部消息）</span>
+            <span>关键词（英文 | 分隔多组，+ 组合必须同时出现；留空 = 全部消息）</span>
             <button
               type="button"
               onClick={polishKeyword}
