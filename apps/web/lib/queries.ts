@@ -36,6 +36,7 @@ export interface StreamMessage {
   media: {
     id: string;
     type: string;
+    r2Key: string;
     r2Url: string;
     fileName: string | null;
     mimeType: string | null;
@@ -44,7 +45,14 @@ export interface StreamMessage {
 
 const messageInclude = {
   media: {
-    select: { id: true, type: true, r2Url: true, fileName: true, mimeType: true },
+    select: {
+      id: true,
+      type: true,
+      r2Key: true,
+      r2Url: true,
+      fileName: true,
+      mimeType: true,
+    },
   },
   source: {
     select: {

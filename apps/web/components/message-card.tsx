@@ -118,11 +118,16 @@ export function MessageCard({
       {images.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-2">
           {images.map((m) => (
-            // 使用原生 img：R2 公开域名运行时才确定，避免 next/image 域名约束
+            // 走 /api/media 代理读取，不依赖 R2 公开域名
             // eslint-disable-next-line @next/next/no-img-element
-            <a key={m.id} href={m.r2Url} target="_blank" rel="noreferrer">
+            <a
+              key={m.id}
+              href={`/api/media/${m.r2Key}`}
+              target="_blank"
+              rel="noreferrer"
+            >
               <img
-                src={m.r2Url}
+                src={`/api/media/${m.r2Key}`}
                 alt={m.fileName ?? "media"}
                 loading="lazy"
                 className="h-28 w-28 rounded-md border border-border object-cover"
@@ -137,7 +142,7 @@ export function MessageCard({
           {files.map((m) => (
             <a
               key={m.id}
-              href={m.r2Url}
+              href={`/api/media/${m.r2Key}`}
               target="_blank"
               rel="noreferrer"
               className="text-xs text-primary hover:underline"
