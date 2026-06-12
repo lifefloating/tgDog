@@ -33,8 +33,18 @@ export function normalizeBaseUrl(raw: string): string {
   return `${url}/v1`;
 }
 
+// 单次 AI 请求的超时（毫秒）。SDK 默认 10 分钟 + 2 次重试，最坏会卡住 ~30 分钟；
+// 报告生成会串行发起多次调用，一个卡死的网关会让整个 HTTP 请求长时间挂起，故收紧。
+const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS) || 90_000;
+const AI_MAX_RETRIES = 1;
+
 export function makeClient(cfg: AiConfig): OpenAI {
-  return new OpenAI({ baseURL: normalizeBaseUrl(cfg.baseURL), apiKey: cfg.apiKey });
+  return new OpenAI({
+    baseURL: normalizeBaseUrl(cfg.baseURL),
+    apiKey: cfg.apiKey,
+    timeout: AI_TIMEOUT_MS,
+    maxRetries: AI_MAX_RETRIES,
+  });
 }
 
 /** 单次对话补全，返回文本 */
