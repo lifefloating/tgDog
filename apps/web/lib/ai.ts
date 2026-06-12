@@ -33,10 +33,11 @@ export function normalizeBaseUrl(raw: string): string {
   return `${url}/v1`;
 }
 
-// 单次 AI 请求的超时（毫秒）。SDK 默认 10 分钟 + 2 次重试，最坏会卡住 ~30 分钟；
-// 报告生成会串行发起多次调用，一个卡死的网关会让整个 HTTP 请求长时间挂起，故收紧。
-const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS) || 90_000;
-const AI_MAX_RETRIES = 1;
+// 单次 AI 请求的超时（毫秒）。SDK 默认 10 分钟 + 2 次重试，最坏会卡住 ~30 分钟。
+// 慢模型生成长内容时单次就可能 1~2 分钟，故给足 240s；同时关掉重试——
+// 重试只会把一次本就该失败的超时再翻倍，白等且无意义。
+const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS) || 240_000;
+const AI_MAX_RETRIES = 0;
 
 export function makeClient(cfg: AiConfig): OpenAI {
   return new OpenAI({
@@ -54,7 +55,6 @@ export async function complete(
   user: string,
 ): Promise<string> {
   const client = makeClient(cfg);
-  const t0 = Date.now();
   let res;
   try {
     res = await client.chat.completions.create({
@@ -66,13 +66,9 @@ export async function complete(
       temperature: 0.3,
     });
   } catch (err) {
-    console.warn(`[ai] 调用失败 (${Date.now() - t0}ms): ${(err as Error).message}`);
     // OpenAI SDK 对非 2xx 会抛错，带上状态码/信息转成可读提示
     throw new Error(`AI 请求失败: ${(err as Error).message}`);
   }
-  console.log(
-    `[ai] 单次补全 ${Date.now() - t0}ms (in≈${user.length}字, out≈${res?.choices?.[0]?.message?.content?.length ?? 0}字)`,
-  );
 
   const content = res?.choices?.[0]?.message?.content;
   if (!content) {

@@ -110,8 +110,12 @@ function formatMsgs(rows: MsgRow[]): string {
     .join("\n");
 }
 
+// map 阶段：把一批消息压成「给下游汇总用的草稿要点」，不是给用户看的成品。
+// 刻意要求紧凑——草稿越短，模型生成越快；信息点保全即可，措辞不必展开。
+// 最终报告的丰富度由 SYSTEM_FINAL（reduce 阶段）保证，与此处长度无关。
 const SYSTEM_CHUNK =
-  "你是一个 Telegram 消息分析助手。请把下面一批消息浓缩成要点（中文），保留关键事件、数字、链接含义。输出简洁的 bullet 列表，不要寒暄。";
+  "你是消息要点提取器。把下面一批 Telegram 消息压成精简的中文 bullet 要点，供后续汇总使用（不是最终报告，不必展开成句）。" +
+  "每条要点尽量短，只保留关键事件、数字、价格、链接含义；同类信息合并成一条。不要解释、不要寒暄、不要复述原文。";
 
 const SYSTEM_FINAL =
   "你是一个情报汇总助手。基于多批消息要点，输出一份当日报告（中文 Markdown），包含：1) 总体概述（3-5 句）；2) 按主题分组的要点（用 ## 小标题）；3) 值得关注的重点。简洁、信息密度高，不要寒暄。";
@@ -377,7 +381,6 @@ export async function generateReport(
   const cfg = await loadAiConfig();
   if (!cfg) return { ok: false, error: "AI 未配置（请在设置里填写 API Key）" };
 
-  const tStart = Date.now();
   onProgress?.({
     phase: "loading",
     done: 0,
@@ -391,15 +394,11 @@ export async function generateReport(
     ...(scope !== "global" ? { sourceId: scope } : {}),
   };
 
-  const tDb = Date.now();
   const messages = await prisma.message.findMany({
     where,
     orderBy: { timestamp: "asc" },
     include: { source: true },
   });
-  console.log(
-    `[report] DB 拉取 ${messages.length} 条消息耗时 ${Date.now() - tDb}ms`,
-  );
 
   if (messages.length === 0) {
     return { ok: false, error: "该日没有消息可汇总" };
@@ -437,7 +436,6 @@ export async function generateReport(
 
   // 汇总与报价提取互不依赖，并行跑（各自内部还有 AI_CONCURRENCY 限并发）。
   // summarize 失败要整体报错；quotes 失败只丢报价表，故分别 catch。
-  const tAi = Date.now();
   const summaryPromise = summarizeChunks(cfg, rows, onProgress);
   const quotesPromise = extractQuotes(cfg, messages, onProgress).then(
     (quotes) => {
@@ -456,7 +454,6 @@ export async function generateReport(
   } catch (e) {
     return { ok: false, error: `AI 调用失败：${(e as Error).message}` };
   }
-  console.log(`[report] AI 阶段（汇总+报价，并行）耗时 ${Date.now() - tAi}ms`);
 
   onProgress?.({
     phase: "saving",
@@ -465,7 +462,6 @@ export async function generateReport(
     message: "正在保存报告…",
   });
 
-  const tSave = Date.now();
   const report = await prisma.report.upsert({
     where: { date_scope: { date: start, scope } },
     update: {
@@ -492,9 +488,6 @@ export async function generateReport(
     where,
     data: { needsSummary: false },
   });
-  console.log(
-    `[report] 保存+标记耗时 ${Date.now() - tSave}ms；总耗时 ${Date.now() - tStart}ms（${messages.length} 条消息）`,
-  );
 
   return { ok: true, reportId: report.id };
 }
