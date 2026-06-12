@@ -45,7 +45,53 @@ interface MsgRow {
   timestamp: Date;
 }
 
-const CHUNK = 60; // 每批喂给模型的消息条数
+// 每批喂给模型的消息条数。模型上下文很大（≥200k），用大批次减少串行调用次数。
+const CHUNK = 150;
+// 批次并发上限：并行发若干批 AI 请求，别一次全发把网关打挂。
+const AI_CONCURRENCY = Number(process.env.AI_CONCURRENCY) || 4;
+
+/**
+ * 限并发地 map：最多 AI_CONCURRENCY 个任务同时跑，保持结果与输入同序。
+ * 每完成一个调用一次 onDone（用于上报进度），count 是已完成总数。
+ */
+async function mapLimit<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T, index: number) => Promise<R>,
+  onDone?: (count: number) => void,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let next = 0;
+  let done = 0;
+  async function worker() {
+    while (true) {
+      const i = next++;
+      if (i >= items.length) return;
+      results[i] = await fn(items[i], i);
+      done++;
+      onDone?.(done);
+    }
+  }
+  const workers = Array.from({ length: Math.min(limit, items.length) }, worker);
+  await Promise.all(workers);
+  return results;
+}
+
+/** 报告生成阶段，供前端展示进度 */
+export type ReportPhase =
+  | "loading" // 拉取消息
+  | "summarize" // 汇总分批
+  | "quotes" // 报价提取
+  | "saving"; // 落库
+
+export interface ReportProgress {
+  phase: ReportPhase;
+  done: number; // 当前阶段已完成步数
+  total: number; // 当前阶段总步数（loading/saving 为 1）
+  message: string; // 可直接展示的中文说明
+}
+
+type OnProgress = (p: ReportProgress) => void;
 
 function dayWindow(date: Date): { start: Date; end: Date } {
   const start = new Date(date);
@@ -73,17 +119,53 @@ const SYSTEM_FINAL =
 async function summarizeChunks(
   cfg: AiConfig,
   rows: MsgRow[],
+  onProgress?: OnProgress,
 ): Promise<string> {
   if (rows.length <= CHUNK) {
-    return complete(cfg, SYSTEM_FINAL, formatMsgs(rows));
+    onProgress?.({
+      phase: "summarize",
+      done: 0,
+      total: 1,
+      message: "正在汇总消息…",
+    });
+    const out = await complete(cfg, SYSTEM_FINAL, formatMsgs(rows));
+    onProgress?.({
+      phase: "summarize",
+      done: 1,
+      total: 1,
+      message: "汇总完成",
+    });
+    return out;
   }
-  // map：分批要点
-  const partials: string[] = [];
-  for (let i = 0; i < rows.length; i += CHUNK) {
-    const chunk = rows.slice(i, i + CHUNK);
-    partials.push(await complete(cfg, SYSTEM_CHUNK, formatMsgs(chunk)));
-  }
+  // map：分批要点（限并发并行跑，按已完成数上报进度）
+  const chunks: MsgRow[][] = [];
+  for (let i = 0; i < rows.length; i += CHUNK) chunks.push(rows.slice(i, i + CHUNK));
+  const total = chunks.length;
+  onProgress?.({
+    phase: "summarize",
+    done: 0,
+    total,
+    message: `正在汇总消息 0/${total} 批…`,
+  });
+  const partials = await mapLimit(
+    chunks,
+    AI_CONCURRENCY,
+    (chunk) => complete(cfg, SYSTEM_CHUNK, formatMsgs(chunk)),
+    (done) =>
+      onProgress?.({
+        phase: "summarize",
+        done,
+        total,
+        message: `正在汇总消息 ${done}/${total} 批…`,
+      }),
+  );
   // reduce：合并成最终报告
+  onProgress?.({
+    phase: "summarize",
+    done: total,
+    total,
+    message: "正在生成最终汇总…",
+  });
   return complete(
     cfg,
     SYSTEM_FINAL,
@@ -175,19 +257,51 @@ interface QuoteMsg {
 async function extractQuotes(
   cfg: AiConfig,
   messages: QuoteMsg[],
+  onProgress?: OnProgress,
 ): Promise<QuoteStats> {
-  const raw: RawQuote[] = [];
+  // 分批并发提取（限并发）。#序号用全局下标，回填时按 q.i 在原数组里取行，故每批要带起始偏移。
+  const batches: { offset: number; chunk: QuoteMsg[] }[] = [];
   for (let i = 0; i < messages.length; i += CHUNK) {
-    const chunk = messages.slice(i, i + CHUNK);
-    const body = chunk
-      .map((m, j) => `#${i + j} ${m.text.replace(/\n/g, " ").slice(0, 400)}`)
-      .join("\n");
-    try {
-      raw.push(...parseQuoteJson(await complete(cfg, SYSTEM_QUOTES, body)));
-    } catch {
-      // 单批提取失败跳过，不影响其余批次和报告主体
-    }
+    batches.push({ offset: i, chunk: messages.slice(i, i + CHUNK) });
   }
+  const total = batches.length;
+  onProgress?.({
+    phase: "quotes",
+    done: 0,
+    total,
+    message: `正在提取报价 0/${total} 批…`,
+  });
+  const perBatch = await mapLimit(
+    batches,
+    AI_CONCURRENCY,
+    async ({ offset, chunk }) => {
+      const body = chunk
+        .map(
+          (m, j) => `#${offset + j} ${m.text.replace(/\n/g, " ").slice(0, 400)}`,
+        )
+        .join("\n");
+      try {
+        return parseQuoteJson(await complete(cfg, SYSTEM_QUOTES, body));
+      } catch {
+        // 单批提取失败跳过，不影响其余批次和报告主体
+        return [] as RawQuote[];
+      }
+    },
+    (done) =>
+      onProgress?.({
+        phase: "quotes",
+        done,
+        total,
+        message: `正在提取报价 ${done}/${total} 批…`,
+      }),
+  );
+  const raw: RawQuote[] = perBatch.flat();
+  onProgress?.({
+    phase: "quotes",
+    done: total,
+    total,
+    message: "报价提取完成",
+  });
 
   // 回填发言人/群信息 + 刷屏去重（同人同品同价只留一条）
   const seen = new Set<string>();
@@ -258,9 +372,17 @@ async function extractQuotes(
 export async function generateReport(
   date: Date,
   scope = "global",
+  onProgress?: OnProgress,
 ): Promise<{ ok: boolean; error?: string; reportId?: string }> {
   const cfg = await loadAiConfig();
   if (!cfg) return { ok: false, error: "AI 未配置（请在设置里填写 API Key）" };
+
+  onProgress?.({
+    phase: "loading",
+    done: 0,
+    total: 1,
+    message: "正在拉取当日消息…",
+  });
 
   const { start, end } = dayWindow(date);
   const where = {
@@ -277,6 +399,13 @@ export async function generateReport(
   if (messages.length === 0) {
     return { ok: false, error: "该日没有消息可汇总" };
   }
+
+  onProgress?.({
+    phase: "loading",
+    done: 1,
+    total: 1,
+    message: `共 ${messages.length} 条消息，开始分析…`,
+  });
 
   const rows: MsgRow[] = messages.map((m) => ({
     text: m.text,
@@ -301,22 +430,33 @@ export async function generateReport(
     topSources,
   };
 
+  // 汇总与报价提取互不依赖，并行跑（各自内部还有 AI_CONCURRENCY 限并发）。
+  // summarize 失败要整体报错；quotes 失败只丢报价表，故分别 catch。
+  const summaryPromise = summarizeChunks(cfg, rows, onProgress);
+  const quotesPromise = extractQuotes(cfg, messages, onProgress).then(
+    (quotes) => {
+      if (quotes.groups.length > 0 || quotes.others.length > 0) {
+        stats.quotes = quotes;
+      }
+    },
+    () => {
+      // 报价提取失败：忽略，不影响报告主体
+    },
+  );
+
   let summaryMarkdown: string;
   try {
-    summaryMarkdown = await summarizeChunks(cfg, rows);
+    [summaryMarkdown] = await Promise.all([summaryPromise, quotesPromise]);
   } catch (e) {
     return { ok: false, error: `AI 调用失败：${(e as Error).message}` };
   }
 
-  // 报价提取：失败只丢掉报价表，不影响报告主体
-  try {
-    const quotes = await extractQuotes(cfg, messages);
-    if (quotes.groups.length > 0 || quotes.others.length > 0) {
-      stats.quotes = quotes;
-    }
-  } catch {
-    // ignore
-  }
+  onProgress?.({
+    phase: "saving",
+    done: 0,
+    total: 1,
+    message: "正在保存报告…",
+  });
 
   const report = await prisma.report.upsert({
     where: { date_scope: { date: start, scope } },
