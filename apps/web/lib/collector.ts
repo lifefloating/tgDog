@@ -48,10 +48,15 @@ export const collector = {
     call(`/dialogs?accountId=${encodeURIComponent(accountId)}`),
   backtest: (accountId: string, limit = 50) =>
     call(`/backtest?accountId=${encodeURIComponent(accountId)}&limit=${limit}`),
-  backfill: (accountId: string, limit = 50) =>
+  backfill: (accountId: string, limit = 200) =>
     call("/backfill", {
       method: "POST",
       body: JSON.stringify({ accountId, limit }),
+    }),
+  backfillSource: (accountId: string, tgChatId: string, limit = 200) =>
+    call("/backfill-source", {
+      method: "POST",
+      body: JSON.stringify({ accountId, tgChatId, limit }),
     }),
   health: () => call("/health"),
 };

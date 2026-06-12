@@ -10,7 +10,7 @@ import {
   type MessageLike,
   type R2Config,
 } from "@tgdog/core";
-import { RuleCache } from "./rule-cache.js";
+import { RuleCache, type AccountCache } from "./rule-cache.js";
 import { handleMessage } from "./handler.js";
 import { loadR2Config } from "./settings.js";
 import { downloadAvatarBuffer } from "./media.js";
@@ -378,10 +378,11 @@ export class ClientManager {
   /**
    * 历史回填：把各监控源最近 limit 条历史消息走完整入库管线
    * （命中规则才入库，含刷屏去重/媒体/规则命中记录）。
+   * GramJS 的 getMessages 会自动按 100 条翻页，所以 limit 可远大于 100。
    */
   async backfillHistory(
     accountId: string,
-    limit = 50,
+    limit = 200,
   ): Promise<{ scanned: number; saved: number; errors: string[] }> {
     const acc = this.running.get(accountId);
     if (!acc) throw new Error("账号未连接");
@@ -391,27 +392,68 @@ export class ClientManager {
     let saved = 0;
     const errors: string[] = [];
     for (const source of cache.sourcesByChatId.values()) {
-      try {
-        const msgs = await acc.client.getMessages(source.tgChatId, { limit });
-        // 从旧到新处理，让刷屏去重的 lastSeenAt 按时间正序推进
-        for (const msg of [...msgs].reverse()) {
-          scanned++;
-          const ok = await handleMessage(
-            acc.client,
-            accountId,
-            cache,
-            this.r2,
-            msg,
-          );
-          if (ok) saved++;
-        }
-      } catch (err) {
-        errors.push(`${source.tgChatId}: ${(err as Error).message}`);
-      }
+      const r = await this.backfillOneSource(
+        acc.client,
+        accountId,
+        cache,
+        source.tgChatId,
+        limit,
+      );
+      scanned += r.scanned;
+      saved += r.saved;
+      if (r.error) errors.push(`${source.tgChatId}: ${r.error}`);
       await sleep(HISTORY_PACING_MS);
     }
     console.log(`[manager] 历史回填完成：扫描 ${scanned} 条，入库 ${saved} 条`);
     return { scanned, saved, errors };
+  }
+
+  /**
+   * 单源历史回填：只回填指定 tgChatId 的最近 limit 条历史。
+   * 用于「新源添加时自动回填一次」，避免为一个源重跑所有源。
+   */
+  async backfillSource(
+    accountId: string,
+    tgChatId: string,
+    limit = 200,
+  ): Promise<{ scanned: number; saved: number; error?: string }> {
+    const acc = this.running.get(accountId);
+    if (!acc) throw new Error("账号未连接");
+    const cache = await this.ruleCache.refresh(accountId);
+    const r = await this.backfillOneSource(
+      acc.client,
+      accountId,
+      cache,
+      tgChatId,
+      limit,
+    );
+    console.log(
+      `[manager] 单源回填完成 ${tgChatId}：扫描 ${r.scanned} 条，入库 ${r.saved} 条`,
+    );
+    return r;
+  }
+
+  /** 拉单个源的历史并走入库管线；从旧到新处理以保证去重 lastSeenAt 正序推进 */
+  private async backfillOneSource(
+    client: TelegramClient,
+    accountId: string,
+    cache: AccountCache,
+    tgChatId: string,
+    limit: number,
+  ): Promise<{ scanned: number; saved: number; error?: string }> {
+    let scanned = 0;
+    let saved = 0;
+    try {
+      const msgs = await client.getMessages(tgChatId, { limit });
+      for (const msg of [...msgs].reverse()) {
+        scanned++;
+        const ok = await handleMessage(client, accountId, cache, this.r2, msg);
+        if (ok) saved++;
+      }
+    } catch (err) {
+      return { scanned, saved, error: (err as Error).message };
+    }
+    return { scanned, saved };
   }
 
   async stop(): Promise<void> {

@@ -290,7 +290,7 @@ export async function backtestRecentMessages(limit = 50): Promise<{
 }
 
 /** 历史回填：把各监控源最近历史消息走完整入库管线（命中规则才入库） */
-export async function backfillHistory(limit = 50): Promise<{
+export async function backfillHistory(limit = 200): Promise<{
   scanned: number;
   saved: number;
   errors: string[];

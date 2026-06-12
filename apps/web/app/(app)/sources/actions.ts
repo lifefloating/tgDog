@@ -49,6 +49,18 @@ export async function addSource(input: {
       avatarKey: input.avatarKey ?? null,
     },
   });
+
+  // 新源自动回填一次历史：实时监听只抓上线后的新消息，先把最近历史补进来，
+  // 让消息流不至于一开始是空的。fire-and-forget，失败不影响加源。
+  void collector
+    .backfillSource(input.accountId, input.tgChatId, 200)
+    .catch((err) =>
+      console.warn(
+        `[sources] 源 ${input.tgChatId} 自动回填失败:`,
+        (err as Error).message,
+      ),
+    );
+
   revalidatePath("/sources");
 }
 

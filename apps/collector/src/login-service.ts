@@ -268,7 +268,21 @@ export function startLoginServer(manager: ClientManager): void {
         if (!accountId) return send(res, 400, { error: "缺少 accountId" });
         const result = await manager.backfillHistory(
           String(accountId),
-          Math.min(Number(limit) || 50, 200),
+          Math.min(Number(limit) || 200, 1000),
+        );
+        return send(res, 200, result);
+      }
+
+      // ===== 单源回填：新源添加时只回填该源的历史 =====
+      if (path === "/backfill-source" && req.method === "POST") {
+        const { accountId, tgChatId, limit } = await readJson(req);
+        if (!accountId || !tgChatId) {
+          return send(res, 400, { error: "缺少 accountId 或 tgChatId" });
+        }
+        const result = await manager.backfillSource(
+          String(accountId),
+          String(tgChatId),
+          Math.min(Number(limit) || 200, 1000),
         );
         return send(res, 200, result);
       }

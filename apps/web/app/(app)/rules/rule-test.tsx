@@ -47,6 +47,7 @@ export function RuleTest() {
   const [backtesting, startBacktest] = useTransition();
   const [backfilling, startBackfill] = useTransition();
   const [backfillResult, setBackfillResult] = useState<string | null>(null);
+  const [backfillLimit, setBackfillLimit] = useState(200);
   const [exporting, startExport] = useTransition();
 
   function runTest() {
@@ -77,7 +78,7 @@ export function RuleTest() {
     setBackfillResult(null);
     startBackfill(async () => {
       try {
-        const r = await backfillHistory(50);
+        const r = await backfillHistory(backfillLimit);
         setBackfillResult(
           `扫描 ${r.scanned} 条，入库 ${r.saved} 条` +
             (r.errors.length ? `（${r.errors.length} 个源拉取失败）` : "") +
@@ -152,11 +153,23 @@ export function RuleTest() {
         >
           {backtesting ? "回测中…" : "用最近消息回测"}
         </Button>
+        <select
+          value={backfillLimit}
+          onChange={(e) => setBackfillLimit(Number(e.target.value))}
+          disabled={backfilling}
+          title="每个源回填多少条历史消息（GramJS 自动翻页，条数越大耗时越长）"
+          className="rounded-md border border-border bg-muted px-2 py-1.5 text-sm"
+        >
+          <option value={50}>50 条/源</option>
+          <option value={200}>200 条/源</option>
+          <option value={500}>500 条/源</option>
+          <option value={1000}>1000 条/源</option>
+        </select>
         <Button
           variant="outline"
           onClick={runBackfill}
           disabled={backfilling}
-          title="把各监控源最近 50 条历史消息走完整入库管线，命中规则的会出现在消息流"
+          title="把各监控源最近 N 条历史消息走完整入库管线，命中规则的会出现在消息流"
         >
           {backfilling ? "回填中…" : "回填历史消息"}
         </Button>
