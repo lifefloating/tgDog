@@ -52,7 +52,23 @@ export function Nav() {
             );
           })}
         </div>
-        <div className="justify-self-end">
+        <div className="flex items-center gap-1 justify-self-end">
+          <a
+            href="https://github.com/lifefloating"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="GitHub @lifefloating"
+            aria-label="访问 GitHub @lifefloating"
+            className="flex items-center rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <img
+              src="https://github.com/lifefloating.png"
+              alt="lifefloating 的 GitHub 头像"
+              width={28}
+              height={28}
+              className="size-7 rounded-full"
+            />
+          </a>
           <ThemeToggle />
         </div>
       </div>
