@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/input";
 import { Avatar } from "@/components/avatar";
@@ -32,6 +32,18 @@ export function MessageCard({
     text.length > COLLAPSE_CHARS ||
     text.split("\n").length > COLLAPSE_LINES;
   const [expanded, setExpanded] = useState(false);
+  /** 当前在 lightbox 中查看的图片代理地址，null 表示关闭 */
+  const [lightbox, setLightbox] = useState<string | null>(null);
+
+  // 打开 lightbox 时监听 ESC 关闭
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
 
   const images = message.media.filter(
     (m) => m.type === "PHOTO" || m.mimeType?.startsWith("image/"),
@@ -118,13 +130,13 @@ export function MessageCard({
       {images.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-2">
           {images.map((m) => (
-            // 走 /api/media 代理读取，不依赖 R2 公开域名
+            // 点击在页面内弹出 lightbox，不新开 tab
             // eslint-disable-next-line @next/next/no-img-element
-            <a
+            <button
               key={m.id}
-              href={`/api/media/${m.r2Key}`}
-              target="_blank"
-              rel="noreferrer"
+              type="button"
+              onClick={() => setLightbox(`/api/media/${m.r2Key}`)}
+              className="cursor-zoom-in"
             >
               <img
                 src={`/api/media/${m.r2Key}`}
@@ -132,7 +144,7 @@ export function MessageCard({
                 loading="lazy"
                 className="h-28 w-28 rounded-md border border-border object-cover"
               />
-            </a>
+            </button>
           ))}
         </div>
       )}
@@ -173,6 +185,33 @@ export function MessageCard({
           )}
         </div>
       </div>
+
+      {/* 图片 lightbox：遮罩 + 居中大图，点遮罩 / X / ESC 关闭 */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightbox(null)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <button
+            type="button"
+            onClick={() => setLightbox(null)}
+            aria-label="关闭"
+            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-2xl leading-none text-white hover:bg-white/20"
+          >
+            ×
+          </button>
+          {/* 阻止点击图片本身冒泡到遮罩导致关闭 */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightbox}
+            alt="预览"
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[90vh] max-w-[90vw] rounded-md object-contain"
+          />
+        </div>
+      )}
     </Card>
   );
 }
